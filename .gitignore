@@ -1,0 +1,28 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Generated content index (rebuilt by `npm run index`, which dev/build/test all run first)
+src/data/index.generated.ts
+
+# Test artifacts
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Local tooling and editor state
+.tessera/
+.superpowers/
+.claude/
+.vscode/
+.idea/
+
+# Environment and OS noise
+.env
+.env.*
+.DS_Store
+
+# Local-only research notes (kept out of the public repo)
+docs/research/

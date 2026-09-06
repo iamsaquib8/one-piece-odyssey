@@ -1,0 +1,59 @@
+{
+  "name": "one-piece-odyssey",
+  "version": "1.0.0",
+  "private": true,
+  "description": "An illustrated, animated fan explorer for the One Piece manga: 33 arcs, 234 story beats and code-drawn pixel art, covering chapters 1 to 1191.",
+  "license": "MIT",
+  "keywords": [
+    "one-piece",
+    "manga",
+    "react",
+    "vite",
+    "typescript",
+    "pixel-art",
+    "fan-project"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "validate": "npm run index && tsx scripts/validate.ts",
+    "typecheck": "tsc -b",
+    "index": "tsx scripts/build-index.ts",
+    "predev": "npm run index",
+    "prebuild": "npm run index",
+    "pretest": "npm run index",
+    "pretest:e2e": "npm run index"
+  },
+  "dependencies": {
+    "@fontsource/nunito-sans": "^5.2.6",
+    "@fontsource/press-start-2p": "^5.2.5",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "lucide-react": "^0.468.0",
+    "motion": "^12.23.24",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^22.19.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/three": "^0.180.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "lighthouse": "^12.8.2",
+    "sharp": "^0.34.5",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "vite": "^6.4.1",
+    "vitest": "^3.2.4"
+  }
+}
