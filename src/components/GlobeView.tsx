@@ -1,19 +1,19 @@
 import {useEffect,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {Compass,RotateCw} from 'lucide-react';
+import {Compass} from 'lucide-react';
 import {connections} from '../data/connections';
 import {globePlaceById,globePlaces,regionViews,spherePoint,type GeoPoint} from './globe-model';
 import {createLandmark,planetTexture} from './globe-art';
+import {layoutMapLabels,mapLabelBudget,type LabelCandidate} from './map-labels';
 import type {AtlasPlace} from './atlas-model';
 
-interface Props{selected:string;onSelect:(place:AtlasPlace)=>void;zoom:number;region:string;focusToken:number;resetToken:number;motion:boolean;layers:{voyage:boolean;geography:boolean;story:boolean;labels:boolean};onFallback:()=>void}
+interface Props{rotating:boolean;onRegionChange:(region:string)=>void;selected:string;onSelect:(place:AtlasPlace)=>void;onZoom:(zoom:number)=>void;zoom:number;region:string;focusToken:number;resetToken:number;motion:boolean;layers:{voyage:boolean;geography:boolean;story:boolean;labels:boolean};onFallback:()=>void}
 interface Engine{focus:(p:GeoPoint)=>void;zoom:(zoom:number)=>void;invalidate:()=>void;setMotion:(motion:boolean)=>void;setLayers:(layers:Props['layers'])=>void;select:(id:string)=>void;rotate:(value:boolean)=>void}
 export default function GlobeView(props:Props){
   const host=useRef<HTMLDivElement>(null),engine=useRef<Engine|null>(null),labelRefs=useRef(new Map<string,HTMLButtonElement>());
   const current=useRef(props);current.current=props;
-  const [failed,setFailed]=useState(false),[ready,setReady]=useState(false),[rotate,setRotate]=useState(false);
-  const [front,setFront]=useState('Paradise');
+  const [failed,setFailed]=useState(false),[ready,setReady]=useState(false);
   useEffect(()=>{
     const el=host.current;if(!el)return;
     let renderer:THREE.WebGLRenderer;
@@ -22,12 +22,15 @@ export default function GlobeView(props:Props){
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.65));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0x071e2d,0);
     const canvas=renderer.domElement;canvas.className='globe-webgl';canvas.tabIndex=0;canvas.setAttribute('role','img');canvas.setAttribute('aria-label','3D globe of the One Piece world. Drag to rotate, pinch or scroll to zoom. Arrow keys rotate; plus and minus zoom. Illustrated islands can be selected.');
     el.prepend(canvas);
-    const controls=new OrbitControls(camera,canvas);controls.enablePan=false;controls.enableDamping=props.motion;controls.dampingFactor=.09;controls.rotateSpeed=.6;controls.zoomSpeed=.8;controls.minDistance=3.35;controls.maxDistance=11.5;controls.autoRotateSpeed=.35;
-    camera.position.set(...spherePoint(regionViews.all,8.6));controls.update();
+    const controls=new OrbitControls(camera,canvas);controls.enablePan=false;controls.enableDamping=props.motion;controls.dampingFactor=.09;controls.rotateSpeed=.6;controls.zoomSpeed=.8;controls.minDistance=4.25;controls.maxDistance=8.6;controls.autoRotateSpeed=.35;
+    camera.position.set(...spherePoint(props.focusToken?(globePlaceById.get(props.selected)||regionViews.all):regionViews.all,8.6));controls.update();
     scene.add(new THREE.HemisphereLight('#ddf4ef','#406681',2.1));
     const sun=new THREE.DirectionalLight('#fff1cf',3);sun.position.set(-3,5,8);scene.add(sun);
     const fill=new THREE.DirectionalLight('#4daec3',1);fill.position.set(4,-1,-4);scene.add(fill);
     const planet=new THREE.Mesh(new THREE.SphereGeometry(2.5,96,64),new THREE.MeshPhongMaterial({map:planetTexture(),shininess:19,specular:'#346876'}));scene.add(planet);
+    // Raised, continuous meridian continent: both crossings are parts of one Red Line.
+    const ridgePoints=Array.from({length:321},(_,i)=>{const a=i/320*Math.PI*2,lon=10*Math.PI/180;return new THREE.Vector3(Math.cos(a)*Math.sin(lon)*2.51,Math.sin(a)*2.51,Math.cos(a)*Math.cos(lon)*2.51);});
+    const ridge=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ridgePoints,true),320,.037,5,true),new THREE.MeshStandardMaterial({color:'#b56a4d',roughness:.94}));scene.add(ridge);
     const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(2.57,64,48),new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,vertexShader:'varying vec3 vN; varying vec3 vP; void main(){vN=normalize(normalMatrix*normal); vP=(modelViewMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*vec4(vP,1.0);}',fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){float rim=pow(1.0-abs(dot(normalize(vN),normalize(-vP))),3.0); gl_FragColor=vec4(0.18,0.68,0.85,rim*0.8);}'}));scene.add(atmosphere);
     const grid=new THREE.Group();scene.add(grid);
     const lineMaterial=new THREE.LineBasicMaterial({color:'#92d1d3',transparent:true,opacity:.11});
@@ -52,28 +55,34 @@ export default function GlobeView(props:Props){
       const points=Array.from({length:40},(_,i)=>{const t=i/39;return v1.clone().lerp(v2,t).normalize().multiplyScalar(2.53+Math.sin(t*Math.PI)*(c.kind==='narrative'?.22:.06));});
       const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineDashedMaterial({color:c.kind==='voyage'?'#ffda7e':c.kind==='narrative'?'#c4a8fa':'#8ef3cf',dashSize:.033,gapSize:.036,transparent:true,opacity:c.kind==='voyage'?.65:.8}));line.computeLineDistances();routeGroups[c.kind==='narrative'?'story':c.kind==='geographic'?'geography':'voyage'].add(line);
     });
-    let width=600,height=560,raf=0,alive=true,inView=true,animateMotion=props.motion,autoRotate=false,transition:{from:THREE.Vector3;to:THREE.Vector3;start:number}|null=null,lastFront='';
-    const projected=new THREE.Vector3(),cameraDirection=new THREE.Vector3();
+    let layoutScale=1,width=600,height=560,raf=0,alive=true,inView=true,animateMotion=props.motion,autoRotate=false,transition:{from:THREE.Vector3;to:THREE.Vector3;start:number}|null=null,lastFront='';
+    const projected=new THREE.Vector3();
+    const labelSizes=new Map<string,{width:number;height:number}>();
     function labels(){
-      const occupied:Array<{x:number;y:number}>=[];
-      const candidates=[...globePlaces.filter(p=>p.major||p.id===current.current.selected)].sort((a,b)=>Number(b.id===current.current.selected)-Number(a.id===current.current.selected));
-      cameraDirection.copy(camera.position).normalize();
-      for(const p of candidates){
+      const candidates:LabelCandidate[]=[];
+      for(const p of globePlaces.filter(p=>p.major||p.id===current.current.selected)){
         const label=labelRefs.current.get(p.id);if(!label)continue;
         const active=p.id===current.current.selected;
         const v=new THREE.Vector3(...spherePoint(p,p.region==='sky'?2.88:2.67));
-        const normal=v.clone().normalize(),toCamera=camera.position.clone().sub(v).normalize();
+        const facing=v.clone().normalize().dot(camera.position.clone().sub(v).normalize());
         projected.copy(v).project(camera);
         const x=(projected.x*.5+.5)*width,y=(-projected.y*.5+.5)*height;
-        const frontFacing=normal.dot(toCamera)>.16;
-        const collision=!active&&occupied.some(pos=>Math.abs(pos.x-x)<96&&Math.abs(pos.y-y)<34);
-        const show=(current.current.layers.labels||active)&&frontFacing&&!collision&&x>45&&x<width-45&&y>40&&y<height-50&&projected.z<1;
-        label.style.display=show?'block':'none';
-        if(show){label.style.transform=`translate(${x}px,${y+16}px) translate(-50%,0)`;label.dataset.active=String(active);occupied.push({x,y});}
+        label.style.visibility='hidden';label.dataset.active=String(active);
+        if(!(active||current.current.layers.labels)||facing<.35||projected.z>=1||x<12||x>width-12||y<12||y>height-20)continue;
+        let measured=labelSizes.get(p.id);
+        if(!measured){measured={width:label.offsetWidth,height:label.offsetHeight};labelSizes.set(p.id,measured);}
+        candidates.push({id:p.id,x,y,...measured,priority:active?100:Math.round(facing*10)});
+      }
+      const zoom=1+(8.6-camera.position.length()/layoutScale)/1.45;
+      const limit=current.current.layers.labels?mapLabelBudget(width,zoom):1;
+      // At the full-world scale, only the selected island gets a label.
+      const eligible=zoom<1.5?candidates.filter(c=>c.id===current.current.selected):candidates;
+      for(const box of layoutMapLabels(eligible,width,height,limit)){
+        const label=labelRefs.current.get(box.id)!;label.style.visibility='visible';label.style.transform=`translate(${box.left}px,${box.top}px)`;
       }
       const lon=Math.atan2(camera.position.x,camera.position.z)*180/Math.PI;
       const side=lon>10||lon< -170?'New World':'Paradise';
-      if(side!==lastFront){lastFront=side;setFront(side);}
+      if(side!==lastFront){lastFront=side;current.current.onRegionChange(side);}
     }
     function render(){
       raf=0;if(!alive||!inView||document.hidden)return;
@@ -91,8 +100,10 @@ export default function GlobeView(props:Props){
     }
     function invalidate(){if(alive&&inView&&!document.hidden&&!raf)raf=requestAnimationFrame(render);}
     const controlStart=()=>{transition=null;};
+    const reportZoom=()=>current.current.onZoom(Math.max(1,Math.min(4,1+(8.6-camera.position.length()/layoutScale)/1.45)));
+    controls.addEventListener('end',reportZoom);
     controls.addEventListener('change',invalidate);controls.addEventListener('start',controlStart);
-    const ro=new ResizeObserver(([entry])=>{width=entry.contentRect.width;height=entry.contentRect.height;camera.aspect=width/Math.max(1,height);camera.updateProjectionMatrix();renderer.setSize(width,height);invalidate();});ro.observe(el);
+    const ro=new ResizeObserver(([entry])=>{width=entry.contentRect.width;height=entry.contentRect.height;labelSizes.clear();const nextScale=Math.max(1,height/Math.max(width,1));camera.position.multiplyScalar(nextScale/layoutScale);layoutScale=nextScale;controls.minDistance=4.25*layoutScale;controls.maxDistance=8.6*layoutScale;transition=null;camera.aspect=width/Math.max(1,height);camera.updateProjectionMatrix();renderer.setSize(width,height);invalidate();});ro.observe(el);
     const io=new IntersectionObserver(([entry])=>{inView=entry.isIntersecting;controls.autoRotate=autoRotate&&animateMotion&&inView&&!document.hidden;if(inView)invalidate();else{cancelAnimationFrame(raf);raf=0;}});io.observe(el);
     const onVisibility=()=>{controls.autoRotate=autoRotate&&animateMotion&&inView&&!document.hidden;if(!document.hidden)invalidate();else{cancelAnimationFrame(raf);raf=0;}};document.addEventListener('visibilitychange',onVisibility);
     let pointerStart={x:0,y:0},wasDrag=false;
@@ -107,15 +118,15 @@ export default function GlobeView(props:Props){
     };
     const key=(e:KeyboardEvent)=>{
       const spherical=new THREE.Spherical().setFromVector3(camera.position);let handled=true;
-      if(e.key==='ArrowLeft')spherical.theta-=.15;else if(e.key==='ArrowRight')spherical.theta+=.15;else if(e.key==='ArrowUp')spherical.phi=Math.max(.12,spherical.phi-.12);else if(e.key==='ArrowDown')spherical.phi=Math.min(Math.PI-.12,spherical.phi+.12);else if(e.key==='+'||e.key==='=')spherical.radius=Math.max(3.35,spherical.radius-.6);else if(e.key==='-')spherical.radius=Math.min(11.5,spherical.radius+.6);else handled=false;
-      if(handled){e.preventDefault();transition=null;camera.position.setFromSpherical(spherical);controls.update();invalidate();}
+      if(e.key==='ArrowLeft')spherical.theta-=.15;else if(e.key==='ArrowRight')spherical.theta+=.15;else if(e.key==='ArrowUp')spherical.phi=Math.max(.12,spherical.phi-.12);else if(e.key==='ArrowDown')spherical.phi=Math.min(Math.PI-.12,spherical.phi+.12);else if(e.key==='+'||e.key==='=')spherical.radius=Math.max(4.25*layoutScale,spherical.radius-.6*layoutScale);else if(e.key==='-')spherical.radius=Math.min(8.6*layoutScale,spherical.radius+.6*layoutScale);else handled=false;
+      if(handled){e.preventDefault();transition=null;camera.position.setFromSpherical(spherical);controls.update();reportZoom();invalidate();}
       if(e.key==='0'||e.key==='Home'){e.preventDefault();engine.current?.focus(regionViews.all);}
     };
     const lost=(e:Event)=>{e.preventDefault();setFailed(true);};
     canvas.addEventListener('pointerdown',pointerDown);canvas.addEventListener('pointermove',pointerMove);canvas.addEventListener('click',click);canvas.addEventListener('keydown',key);canvas.addEventListener('webglcontextlost',lost);
     engine.current={
-      focus(p){const to=new THREE.Vector3(...spherePoint(p,Math.max(5.5,camera.position.length())));if(animateMotion){transition={from:camera.position.clone(),to,start:performance.now()};}else{transition=null;camera.position.copy(to);}controls.update();invalidate();},
-      zoom(z){transition=null;camera.position.normalize().multiplyScalar(8.6-(z-1)*1.45);controls.update();invalidate();},
+      focus(p){const to=new THREE.Vector3(...spherePoint(p,camera.position.length()));if(animateMotion){transition={from:camera.position.clone(),to,start:performance.now()};}else{transition=null;camera.position.copy(to);}controls.update();invalidate();},
+      zoom(z){transition=null;camera.position.normalize().multiplyScalar((8.6-(z-1)*1.45)*layoutScale);controls.update();invalidate();},
       invalidate,
       setMotion(value){animateMotion=value;controls.enableDamping=value;controls.autoRotate=autoRotate&&value;if(!value&&transition){camera.position.copy(transition.to);transition=null;}invalidate();},
       setLayers(l){routeGroups.voyage.visible=l.voyage;routeGroups.story.visible=l.story;routeGroups.geography.visible=l.geography;invalidate();},
@@ -131,19 +142,18 @@ export default function GlobeView(props:Props){
       geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());renderer.dispose();canvas.remove();engine.current=null;
     };
   },[]);
-  useEffect(()=>{engine.current?.setMotion(props.motion);if(!props.motion)setRotate(false);},[props.motion]);
+  useEffect(()=>{engine.current?.setMotion(props.motion);},[props.motion]);
   useEffect(()=>engine.current?.setLayers(props.layers),[props.layers]);
   useEffect(()=>engine.current?.select(props.selected),[props.selected]);
   useEffect(()=>engine.current?.zoom(props.zoom),[props.zoom]);
   useEffect(()=>{const p=globePlaceById.get(props.selected);if(p&&props.focusToken)engine.current?.focus(p);},[props.focusToken]);
-  useEffect(()=>{engine.current?.focus(regionViews[props.region]||regionViews.all);},[props.region,props.resetToken]);
-  useEffect(()=>engine.current?.rotate(rotate),[rotate]);
+  useEffect(()=>{if(props.resetToken===0&&props.region==='all'&&props.focusToken>0)return;engine.current?.focus(regionViews[props.region]||regionViews.all);},[props.region,props.resetToken]);
+  useEffect(()=>engine.current?.rotate(props.rotating),[props.rotating]);
   return <div className="globe-stage" ref={host} data-testid="earth-globe">
     <div className="globe-ambient-grid" aria-hidden="true"/>
-    <div className="globe-heading"><span>THE ONE PIECE WORLD</span><strong>{front}</strong><small>Drag the planet to discover the other side.</small></div>
-    {globePlaces.filter(p=>p.major||p.id===props.selected).map(p=><button key={p.id} ref={el=>{if(el)labelRefs.current.set(p.id,el);else labelRefs.current.delete(p.id);}} className="globe-place-label" style={{display:'none'}} onClick={()=>props.onSelect(p)} aria-label={`Select ${p.name}`} aria-pressed={props.selected===p.id}>{p.name.replace('Kingdom of ','')}</button>)}
+    {globePlaces.filter(p=>p.major||p.id===props.selected).map(p=><button key={p.id} ref={el=>{if(el)labelRefs.current.set(p.id,el);else labelRefs.current.delete(p.id);}} className="globe-place-label" style={{visibility:'hidden'}} onClick={()=>props.onSelect(p)} aria-label={`Select ${p.name}`} aria-pressed={props.selected===p.id}>{p.name.replace('Kingdom of ','')}</button>)}
     {!ready&&!failed?<div className="globe-loading" role="status"><Compass size={32}/><span>Unfolding the world…</span></div>:null}
     {failed?<div className="globe-fallback"><Compass size={38}/><h2>Explore the illustrated chart</h2><p>3D rendering is unavailable in this browser. Every island, route and field note is also available in the flat atlas.</p><button className="button" onClick={props.onFallback}>Open flat atlas</button></div>:null}
-    <div className="globe-bottom"><button className={rotate?'active':''} aria-pressed={rotate} disabled={!props.motion} onClick={()=>setRotate(v=>!v)}><RotateCw size={15}/>{rotate?'Stop rotation':'Auto rotate'}</button><span>ORBIT · ZOOM · DISCOVER</span></div>
+
   </div>;
 }

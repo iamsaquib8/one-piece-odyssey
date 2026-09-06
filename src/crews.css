@@ -288,3 +288,21 @@ html[data-motion='on'] .fleet-card { animation-name: fleet-card-in; animation-du
 @media (prefers-reduced-motion: reduce) {
   .character-portrait *, .fleet-card { animation: none !important; }
 }
+.detail-character-portrait { width: 180px; margin: 16px auto; }
+.crew-detail-heading { display: flex; align-items: center; gap: 24px; }
+.crew-detail-heading .detail-character-portrait { width: 140px; flex: 0 0 140px; }
+.detail-member-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.detail-member { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px; border: 1px solid #10243a35; border-radius: 10px; background: #f4e8ce; min-height: 80px; }
+.detail-member:hover { background: #ffdf86; }
+.detail-member .character-portrait { width: 58px; flex-shrink: 0; }
+.detail-member span { flex: 1; }
+.detail-member strong,.detail-member small { display: block; }
+.detail-member small { color: #4d5c64; font-size: 12px; }
+.character-chip .character-portrait { width: 36px; }
+@media(max-width:600px) { .detail-member-grid { grid-template-columns: 1fr; } .crew-detail-heading { flex-direction: column; text-align: center; gap: 0; } }
+
+.fleet-card { min-width: 0; }
+.fleet-card-heading { grid-template-columns: 82px minmax(0,1fr) 20px; }
+.fleet-card-heading>span { min-width:0; overflow-wrap:anywhere; }
+.detail-member>.character-portrait { flex:0 0 58px; }
+@media(max-width:620px){.fleet-grid{grid-template-columns:minmax(0,1fr)}.fleet-card-heading{grid-template-columns:68px minmax(0,1fr) 18px}.fleet-card-heading strong{overflow-wrap:anywhere}}

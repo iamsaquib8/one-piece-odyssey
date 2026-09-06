@@ -1,12 +1,18 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { arcs } from '../src/data/arcs';
+import { sagas } from '../src/data/sagas';
+import { coverage } from '../src/data/coverage';
+
+/** The arc still being published, or the last one if every arc has finished. */
+const ongoing = arcs.find((arc) => arc.status === 'ongoing') ?? arcs[arcs.length - 1];
 
 test.describe('One Piece Odyssey', () => {
   test('journey renders every saga with islands and passes axe', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toContainText('A grand adventure.');
-    await expect(page.locator('[data-saga]')).toHaveCount(13);
-    await expect(page.locator('.arc-stop')).toHaveCount(33);
+    await expect(page.locator('[data-saga]')).toHaveCount(sagas.length);
+    await expect(page.locator('.arc-stop')).toHaveCount(arcs.length);
     const results = await new AxeBuilder({ page }).disableRules(['color-contrast']).analyze();
     expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
   });
@@ -49,13 +55,15 @@ test.describe('One Piece Odyssey', () => {
     await expect(dialog.locator('.arc-hero h2')).toHaveText('Arlong Park');
   });
 
-  test('the ongoing Elbaf arc runs to the latest chapter', async ({ page }) => {
-    await page.goto('/?arc=elbaf');
+  test('the ongoing arc runs to the latest covered chapter', async ({ page }) => {
+    await page.goto(`/?arc=${ongoing.id}`);
     const dialog = page.getByRole('dialog');
-    await expect(dialog.locator('.arc-hero-kicker')).toContainText('1191');
-    await expect(dialog.locator('.editorial-note')).toContainText('chapter 1191');
-    expect(await dialog.locator('.beat-page').count()).toBeGreaterThanOrEqual(10);
-    await expect(dialog.locator('.beat-page.kind-flashback, .beat-scene.kind-flashback').first()).toBeVisible();
+    await expect(dialog.locator('.arc-hero-kicker')).toContainText(String(coverage.coveredThrough));
+    await expect(dialog.locator('.editorial-note')).toContainText(`chapter ${coverage.coveredThrough}`);
+    await expect(dialog.locator('.beat-page')).toHaveCount(ongoing.beats.length);
+    if (ongoing.beats.some((beat) => beat.kind === 'flashback')) {
+      await expect(dialog.locator('.beat-scene.kind-flashback').first()).toBeVisible();
+    }
   });
 
   test('saves survive a reload and appear in the logbook', async ({ page }) => {

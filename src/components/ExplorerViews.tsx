@@ -11,7 +11,7 @@ import type { Location, ReaderState, Route, View } from '../types';
 import { encodeRoute } from '../state';
 
 type OpenFn = (kind: NonNullable<Route['kind']>, id: string, beat?: string) => void;
-interface Props { view: View; route: Route; reader: ReaderState; onOpen: OpenFn; onNavigate: (view: View) => void; onJumpSaga: (id: string) => void; onSave: (id: string) => void }
+interface Props { motion:boolean; view: View; route: Route; reader: ReaderState; onOpen: OpenFn; onNavigate: (view: View) => void; onJumpSaga: (id: string) => void; onSave: (id: string) => void }
 
 const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, '').toLowerCase();
 
@@ -55,7 +55,7 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
   function submit(e: FormEvent) { e.preventDefault(); const first = hits[0]; if (first) activate(first); }
   function activate(h: Hit) { if (h.kind === 'saga') onJumpSaga(h.id); else onOpen(h.kind, h.id); }
   return <section className="explorer search-view" aria-labelledby="search-title">
-    <div className="explorer-heading"><div><span className="micro">FIND YOUR NEXT ADVENTURE</span><h1 id="search-title">Search the seas</h1><p>Arcs, islands, sagas and the crew. Results open in the logbook; the address bar keeps your search so you can share it.</p></div></div>
+    <div className="explorer-heading"><div><span className="micro">FIND YOUR NEXT ADVENTURE</span><h1 id="search-title">Search the seas</h1><p>Arcs, islands, sagas, pirate crews and characters. Results open in the logbook; the address bar keeps your search so you can share it.</p></div></div>
     <form className="search-form" role="search" onSubmit={submit}><Search size={20} /><input ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search manga arcs, islands, characters…" aria-label="Search the explorer" autoComplete="off" enterKeyHint="search" />{query ? <button type="button" className="clear" aria-label="Clear search" onClick={() => { setQuery(''); input.current?.focus(); }}><X size={18} /></button> : null}</form>
     {!q ? <div className="suggestions" aria-label="Suggested searches">{['Alabasta', 'Going Merry', 'Water Seven', 'Nico Robin', 'Skypiea', 'Wano', 'Sanji', 'Sabaody'].map((s) => <button key={s} className="chip" onClick={() => setQuery(s)}><Search size={14} />{s}</button>)}</div>
       : hits.length === 0 ? <div className="empty-state"><Compass size={44} /><h2>Nothing on the chart for “{q}”.</h2><p>Try a shorter word, an island name, or a crew member. Character names use the manga’s English spellings.</p><button className="button" onClick={() => setQuery('')}>Clear the search</button></div>

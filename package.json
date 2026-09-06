@@ -29,7 +29,8 @@
     "predev": "npm run index",
     "prebuild": "npm run index",
     "pretest": "npm run index",
-    "pretest:e2e": "npm run index"
+    "pretest:e2e": "npm run index",
+    "refresh:audit": "tsx scripts/refresh-audit.ts"
   },
   "dependencies": {
     "@fontsource/nunito-sans": "^5.2.6",

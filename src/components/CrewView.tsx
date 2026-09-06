@@ -1,8 +1,8 @@
 import { useDeferredValue, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from 'react';
 import { ArrowRight, Bookmark, Compass, Search, ShipWheel, Users, X } from 'lucide-react';
 import type { ReaderState } from '../types';
-import { arcs } from '../data/arcs';
-import { crews, crewCategories, crewFirstAppearance, type CrewCategory } from '../data/crews';
+import { arcSummaries as arcs } from '../data/arc-index';
+import { crews, crewCoverageThrough, crewCategories, crewFirstAppearance, type CrewCategory } from '../data/crews';
 import { allCharactersWithPortraits } from '../data/other-characters';
 import { sagas } from '../data/sagas';
 import CharacterPortrait from './CharacterPortrait';
@@ -82,11 +82,11 @@ export default function CrewView({ reader, onOpen, onSave }: CrewViewProps) {
       <div className="fleet-hero-copy">
         <span className="micro">FIELD GUIDE 04 · THE PEOPLE WHO MOVE THE ERA</span>
         <h1 id="crew-title">A fleet of<br /><i>crossed courses.</i></h1>
-        <p>From one borrowed hat to the powers contesting the final sea: {crews.length} crews and factions, ordered by their weight in the story. Relevance describes narrative reach, not strength.</p>
+        <p>From one borrowed hat to the powers contesting the final sea: {crews.length} crews and factions, ordered by their weight in the story. Relevance describes narrative reach, not strength. Profiles cover through chapter {crewCoverageThrough}.</p>
       </div>
       <div className="fleet-compass" aria-hidden="true">
         <Compass />
-        <span>1126</span>
+        <span>{crewCoverageThrough}</span>
         <small>CHAPTER<br />HORIZON</small>
       </div>
       <dl className="fleet-stats">
@@ -138,7 +138,7 @@ export default function CrewView({ reader, onOpen, onSave }: CrewViewProps) {
           <div className="fleet-card-topline"><span>{crew.category}</span><span>R.{String(crew.relevance).padStart(3, '0')}</span></div>
           <button className="fleet-card-heading" onClick={() => onOpen('crew', crew.id)}>
             <CharacterPortrait characterId={crew.captain} name={captain?.name} color={captain?.color ?? crew.color} className="captain-portrait" />
-            <span><small>{captain?.role ?? 'Captain'}</small><strong><Highlight query={query}>{crew.name}</Highlight></strong><em>Led by <Highlight query={query}>{captain?.name ?? crew.captain}</Highlight></em></span>
+            <span><small>{captain?.role ?? 'Captain'}</small><strong><Highlight query={query}>{crew.name}</Highlight></strong><em>{crew.category==='factions'?'Featured: ':'Led by '}<Highlight query={query}>{captain?.name ?? crew.captain}</Highlight></em></span>
             <ArrowRight size={20} />
           </button>
           <p>{crew.description}</p>
