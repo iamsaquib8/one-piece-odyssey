@@ -39,6 +39,7 @@ const parents:Record<string,string>={
   'human-auctioning-house':'sabaody-archipelago','rusukaina':'amazon-lily','ryugu-palace':'fish-man-island',
   'green-bit':'dressrosa','cacao-island':'whole-cake-island','mirror-world':'whole-cake-island',
   'flower-capital':'wano-country','udon':'wano-country','ringo':'wano-country','onigashima':'wano-country',
+  'elbaf-walrus-town':'elbaf','elbaf-aurust-castle':'elbaf','elbaf-owl-library':'elbaf','elbaf-underworld':'elbaf',
 };
 const childOffsets:[[number,number],[number,number],[number,number],[number,number],[number,number]]=[[65,70],[-65,95],[70,-55],[-70,-60],[0,140]];
 export const atlasPlaces=locations.map(l=>{

@@ -13,6 +13,10 @@ describe('device-local logbook', () => {
   });
 });
 describe('shareable navigation', () => {
+  it('round-trips crew profiles and preserves the originating view',()=>{
+    const route={view:'crew' as const,kind:'crew' as const,id:'red-hair'};
+    expect(decodeRoute(encodeRoute(route))).toEqual(route);
+  });
   it('round-trips story beats with the originating world view', () => {
     const route = {view:'world' as const, kind:'arc' as const, id:'alabasta', beat:'rain-returns'};
     expect(decodeRoute(encodeRoute(route))).toEqual(route);

@@ -86,7 +86,7 @@ const RECIPES: Record<string, PortraitRecipe> = {
   boo: P('#202022', '#596999', { hairStyle: 'bald', skin: '#a86244' }),
   ideo: P('#923e2e', '#b16645', { hairStyle: 'spikes', skin: '#9b4e3a' }),
   'blue-gilly': P('#486aa8', '#6a77a5', { hairStyle: 'long', skin: '#b46d50' }),
-  leo: P('#d99734', '#6d823f', { hat: 'cap', kind: 'mink', skin: '#d09a5d' }),
+  leo: P('#d99734', '#6d823f', { hat: 'cap', kind: 'human', skin: '#d09a5d' }),
   mansherry: P('#f2c64f', '#db718d', { hairStyle: 'long', hat: 'crown', effect: 'petals' }),
   hajrudin: P('#b68752', '#69513f', { hat: 'helmet', hairStyle: 'long', beard: true }),
   gerd: P('#c67542', '#ad6977', { hairStyle: 'long', hat: 'helmet' }),

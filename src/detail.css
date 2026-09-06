@@ -235,3 +235,54 @@ html[data-motion='on'] .beat-clash { animation: clash-pulse 1.6s ease-in-out inf
   .next-stop { grid-template-columns: 1fr; margin: 28px 16px 40px; }
   .nav-beats { display: none; }
 }
+
+/* ---------------------------------------------------- The fight, as a scene */
+.battle-card .battle-stage { min-height: clamp(230px, 30vw, 300px); align-content: end; padding-bottom: 46px; }
+.battle-card .battle-caption { position: relative; z-index: 4; text-shadow: 2px 2px 0 var(--ink), 0 0 18px rgba(3, 47, 58, 0.9); }
+.battle-card .battle-frame, .battle-card .battle-progress { z-index: 5; }
+
+.fight-stage { position: absolute; inset: 0; overflow: hidden; }
+.fight-ground { position: absolute; inset: -8% 0 auto 0; height: 116%; filter: saturate(0.75) brightness(0.62); }
+.fight-ground .scene { height: 100%; aspect-ratio: auto; border: 0; border-radius: 0; box-shadow: none; }
+.fight-ground .scene svg { position: absolute; top: 50%; left: 0; width: 100%; height: auto; min-height: 100%; transform: translateY(-50%); }
+.fight-ground-void { background: radial-gradient(ellipse at 50% 65%, #2a3f63, var(--sea-abyss) 72%); }
+.fight-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 55%, rgba(3, 47, 58, 0) 30%, rgba(3, 47, 58, 0.82) 100%); }
+
+.fight-speedlines { position: absolute; left: 50%; top: 52%; width: 116%; height: 116%; transform: translate(-50%, -50%); }
+.fight-speedlines svg { width: 100%; height: 100%; }
+.fight-speedlines line { stroke: var(--paper); stroke-width: 1.6; stroke-linecap: round; opacity: 0.55; }
+
+.fight-side { position: absolute; bottom: 38%; display: flex; align-items: flex-end; }
+.fight-a { left: 9%; flex-direction: row-reverse; }
+.fight-b { right: 9%; }
+.fight-figure { position: relative; display: grid; justify-items: center; margin: 0 -14px; z-index: calc(3 - var(--depth)); }
+.fight-figure .character-portrait { width: clamp(52px, 7vw, 74px); background: var(--accent); border-radius: 50%; outline: 3px solid var(--paper); filter: drop-shadow(4px 5px 0 rgba(3, 20, 30, 0.55)); }
+.fight-b .fight-figure .character-portrait { outline-color: var(--coral); }
+.fight-figure em { margin-top: 5px; padding: 2px 7px; font-family: var(--font-utility); font-size: 7px; font-style: normal; color: var(--ink); background: var(--paper); border-radius: 999px; white-space: nowrap; }
+.fight-side.reeling .character-portrait { filter: drop-shadow(4px 5px 0 rgba(3, 20, 30, 0.55)) saturate(0.6) brightness(0.8); }
+.fight-stage.final .fight-side.reeling { opacity: 0.75; }
+
+.fight-impact { position: absolute; left: 50%; top: 34%; width: clamp(92px, 13vw, 132px); height: clamp(92px, 13vw, 132px); transform: translate(-50%, -50%); display: grid; place-items: center; z-index: 3; }
+.fight-star { position: absolute; inset: 0; width: 100%; height: 100%; }
+.fight-star polygon { fill: var(--gold); stroke: var(--ink); stroke-width: 3; }
+.fight-impact b { position: relative; font-family: var(--font-utility); font-size: clamp(11px, 1.7vw, 16px); color: var(--coral); text-shadow: 2px 2px 0 var(--ink); letter-spacing: 0.04em; }
+.actor-b .fight-star polygon { fill: var(--coral); }
+.actor-b .fight-impact b { color: var(--gold); }
+
+.fight-momentum { position: absolute; left: 14%; right: 14%; top: 14px; height: 4px; background: rgba(255, 248, 231, 0.22); border-radius: 2px; z-index: 3; }
+.fight-momentum i { position: absolute; top: -4px; width: 12px; height: 12px; margin-left: -6px; background: var(--gold); border: 2px solid var(--ink); border-radius: 50%; }
+
+.fight-flash { position: absolute; inset: 0; z-index: 2; background: var(--paper); opacity: 0; }
+html[data-motion='on'] .fight-flash { animation: fight-flash 0.32s ease-out; }
+@keyframes fight-flash { 0% { opacity: 0.42; } 100% { opacity: 0; } }
+html[data-motion='on'] .fight-stage.final .fight-star { animation: fight-spin 6s linear infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes fight-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 760px) {
+  .battle-card .battle-stage { min-height: 210px; padding-bottom: 40px; }
+  .fight-a { left: 3%; }
+  .fight-b { right: 3%; }
+  .fight-figure { margin: 0 -10px; }
+  .fight-figure em { display: none; }
+  .fight-momentum { top: 32px; }
+}

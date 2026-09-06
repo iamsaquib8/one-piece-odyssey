@@ -6,6 +6,7 @@ import { arcs } from '../../data/arcs';
 import { sagas } from '../../data/sagas';
 import { locations } from '../../data/locations';
 import { characters } from '../../data/characters';
+import { crews } from '../../data/crews';
 import { coverage } from '../../data/coverage';
 import { stagingFor, type CastMember } from '../../data/staging';
 import { bountyChanges, crewAboard, formatBerries } from '../../data/crew-roster';
@@ -56,6 +57,7 @@ export function ArcDetail({ arc, route, reader, motion, scroller, onOpen, onExpl
 
     <section id="detail-characters" className="arc-section arc-cast">
       <header className="arc-section-head"><span className="micro">WHO STANDS WHERE</span><h2>The cast</h2></header>
+      <div className="reading-copy"><div className="location-links"><span className="micro">CREWS & FACTIONS IN THIS STORY</span>{crews.filter(c=>c.arcIds.includes(arc.id)).map(c=><button className="place-link" key={c.id} onClick={()=>onOpen('crew',c.id)}>{c.name}<ArrowRight size={14}/></button>)}</div></div>
       <CastGallery cast={members} roster={roster} characters={characters} motion={motion} onOpenCharacter={(id) => onOpen('character', id)} />
     </section>
 
@@ -66,7 +68,7 @@ export function ArcDetail({ arc, route, reader, motion, scroller, onOpen, onExpl
 
     <section id="detail-battles" className="arc-section arc-battles">
       <header className="arc-section-head"><span className="micro">STEEL, FISTS AND HAKI</span><h2>Battles</h2></header>
-      {arc.battles.map((b) => <BattleCard key={b.id} battle={b} staging={staging?.battles[b.id]} cast={cast} motion={motion} />)}
+      {arc.battles.map((b) => <BattleCard key={b.id} battle={b} staging={staging?.battles[b.id]} cast={cast} motion={motion} locationId={arc.locationIds[0]} />)}
     </section>
 
     <section id="detail-legacy" className="arc-section arc-legacy">

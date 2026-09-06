@@ -2,6 +2,8 @@
 import { arcs, sagas } from '../src/data/arcs';
 import { locations, connections } from '../src/data/locations';
 import { characters } from '../src/data/characters';
+import { crews } from '../src/data/crews';
+import { allCharacters } from '../src/data/all-characters';
 import { coverage } from '../src/data/coverage';
 import { stagings } from '../src/data/staging';
 
@@ -9,6 +11,12 @@ const problems: string[] = [];
 const ids = <T extends { id: string }>(list: T[], label: string) => { const seen = new Set<string>(); for (const x of list) { if (seen.has(x.id)) problems.push(`${label}: duplicate id ${x.id}`); seen.add(x.id); } return seen; };
 const arcIds = ids(arcs, 'arcs'); const locationIds = ids(locations, 'locations'); const characterIds = ids(characters, 'characters'); const sagaIds = ids(sagas, 'sagas');
 
+const profileIds = ids(allCharacters, 'all character profiles');
+ids(crews, 'crews and factions');
+for (const crew of crews) {
+  for (const id of [crew.captain, ...crew.memberIds]) if (!profileIds.has(id)) problems.push(`crew ${crew.id}: unknown member ${id}`);
+  for (const id of crew.arcIds) if (!arcIds.has(id)) problems.push(`crew ${crew.id}: unknown arc ${id}`);
+}
 let previousEnd = 0;
 for (const a of arcs) {
   if (!sagaIds.has(a.sagaId)) problems.push(`arc ${a.id}: unknown saga ${a.sagaId}`);
@@ -63,6 +71,6 @@ for (const s of stagings) {
 }
 for (const a of arcs) if (!stagingIds.has(a.id)) problems.push(`arc ${a.id}: no staging`);
 
-const summary = `${arcs.length} arcs · ${arcs.reduce((n, a) => n + a.beats.length, 0)} beats · ${arcs.reduce((n, a) => n + a.battles.length, 0)} battles · ${locations.length} locations · ${characters.length} crew · ${connections.length} connections · ${stagings.reduce((n, s) => n + s.cast.length, 0)} cast entries · coverage Ch. 1–${coverage.coveredThrough}`;
+const summary = `${arcs.length} arcs · ${arcs.reduce((n, a) => n + a.beats.length, 0)} beats · ${arcs.reduce((n, a) => n + a.battles.length, 0)} battles · ${locations.length} locations · ${allCharacters.length} character profiles · ${crews.length} crews/factions · ${connections.length} connections · ${stagings.reduce((n, s) => n + s.cast.length, 0)} cast entries · coverage Ch. 1–${coverage.coveredThrough}`;
 if (problems.length) { console.error(`✗ ${problems.length} content problems\n` + problems.map((p) => `  - ${p}`).join('\n')); console.error(summary); process.exit(1); }
 console.log(`✓ content edition is consistent\n${summary}`);

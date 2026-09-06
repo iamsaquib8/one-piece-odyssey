@@ -12,10 +12,11 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
-# Local tooling and editor state
+# Local tooling and editor state. Project skills under .claude/skills/ ARE committed.
 .tessera/
 .superpowers/
-.claude/
+.claude/settings.local.json
+.claude/logs/
 .vscode/
 .idea/
 

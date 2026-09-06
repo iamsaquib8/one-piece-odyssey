@@ -13,10 +13,10 @@ const VERDICT: Record<NonNullable<BattleStaging['verdict']>, { label: string; to
 };
 const ease = [0.22, 1, 0.36, 1] as const;
 
-interface Props { battle: Battle; staging?: BattleStaging; cast: Map<string, CastMember>; motion: boolean }
+interface Props { battle: Battle; staging?: BattleStaging; cast: Map<string, CastMember>; motion: boolean; locationId?: string }
 
 /** Versus header (both sides face off, VS badge slams in, verdict stamp) above the frame player. */
-export function BattleCard({ battle, staging, cast, motion }: Props) {
+export function BattleCard({ battle, staging, cast, motion, locationId }: Props) {
   const side = (ids: string[] = []) => ids.map((id) => cast.get(id)).filter((c): c is CastMember => Boolean(c));
   const a = side(staging?.a);
   const b = side(staging?.b);
@@ -30,7 +30,7 @@ export function BattleCard({ battle, staging, cast, motion }: Props) {
       </div>
       <Side members={b} align="right" motion={motion} />
     </div> : null}
-    <BattlePlayer battle={battle} motion={motion} />
+    <BattlePlayer battle={battle} motion={motion} staging={staging} cast={cast} locationId={locationId} />
   </m.section>;
 }
 

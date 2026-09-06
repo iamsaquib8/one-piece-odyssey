@@ -24,7 +24,7 @@ function profile(p: Profile): PortraitCharacter {
 
 // Supporting profiles are intentionally concise. The long-form Straw Hat profiles remain
 // in characters.ts; this file supplies the captains and representative members needed by
-// the fleet registry through chapter 1126.
+// the fleet registry through crewCoverageThrough (see crews.ts).
 export const otherCharacters: PortraitCharacter[] = [
   profile({ id: 'shanks', name: 'Shanks', epithet: 'Red-Haired', role: 'Captain', arcId: 'romance-dawn', color: '#b83b42', crewIds: ['red-hair'], description: 'The pirate who entrusts Luffy with the straw hat later becomes one of the Four Emperors. His small veteran crew is first a childhood ideal, then an active rival in the final race.', milestones: ['Saves Luffy and leaves him the straw hat (1).', 'Ends the fighting at Marineford (580).', 'Defeats the Kid Pirates near Elbaf (1079).'] }),
   profile({ id: 'beckman', name: 'Benn Beckman', epithet: 'First Mate', role: 'First mate', arcId: 'romance-dawn', color: '#59606b', crewIds: ['red-hair'] }),
@@ -125,7 +125,7 @@ export const otherCharacters: PortraitCharacter[] = [
 
   profile({ id: 'pedro', name: 'Pedro', epithet: 'Tree-top', role: 'Captain', arcId: 'zou', color: '#5d7f6c', crewIds: ['nox'] }),
   profile({ id: 'pekoms', name: 'Pekoms', epithet: 'Fighter', role: 'Former member', arcId: 'zou', color: '#a37e4d', crewIds: ['nox', 'big-mom'], formerAffiliations: ['Nox Pirates', 'Big Mom Pirates'] }),
-  profile({ id: 'carrot', name: 'Carrot', epithet: 'Kingsbird', role: 'Ally', arcId: 'zou', color: '#d98b73', crewIds: ['nox'] }),
+  profile({ id: 'carrot', name: 'Carrot', epithet: 'Kingsbird', role: 'Mink ally', arcId: 'zou', color: '#d98b73', crewIds: [] }),
 
   profile({ id: 'roger', name: 'Gol D. Roger', epithet: 'Pirate King', role: 'Captain', arcId: 'loguetown', color: '#b34d3e', crewIds: ['roger'] }),
   profile({ id: 'rayleigh', name: 'Silvers Rayleigh', epithet: 'Dark King', role: 'First mate', arcId: 'sabaody-archipelago', color: '#b4b7b5', crewIds: ['roger'] }),

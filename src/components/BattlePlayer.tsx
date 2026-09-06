@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, Swords, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion as m } from 'motion/react';
 import type { Battle } from '../types';
+import type { BattleStaging, CastMember } from '../data/staging';
+import { FightStage } from './arc/FightStage';
 let stopOther: (()=>void)|undefined;
-export function BattlePlayer({battle,motion}:{battle:Battle;motion:boolean}){
+export function BattlePlayer({battle,motion,staging,cast,locationId}:{battle:Battle;motion:boolean;staging?:BattleStaging;cast?:Map<string,CastMember>;locationId?:string}){
   const [playing,setPlaying]=useState(false);
   const [frame,setFrame]=useState(0);
   const ref=useRef<HTMLDivElement>(null);
@@ -32,9 +34,9 @@ export function BattlePlayer({battle,motion}:{battle:Battle;motion:boolean}){
   return <div className="battle" ref={ref}>
     <div className="battle-heading"><Swords size={22}/><div><span className="micro">BATTLE LOG · CH. {battle.chapters}</span><h3>{battle.title}</h3></div></div>
     <div className={`battle-stage frame-${frame} ${playing?'playing':''}`} role="group" aria-label="Illustrated battle sequence. Use the arrow keys to step through the frames." tabIndex={0} onKeyDown={onKey} onClick={()=>step(frame===frames.length-1?-(frames.length-1):1)}>
-      <div className="battle-burst" aria-hidden="true"><span>✦</span><i/><b/></div>
+      {cast ? <FightStage battle={battle} staging={staging} cast={cast} locationId={locationId} frame={frame} playing={playing} motion={motion}/> : <div className="battle-burst" aria-hidden="true"><span>✦</span><i/><b/></div>}
       <span className="battle-frame">{String(frame+1).padStart(2,'0')} / {String(frames.length).padStart(2,'0')}</span>
-      <AnimatePresence mode="wait" initial={false}><m.p key={frame} initial={motion?{opacity:0,scale:1.18,rotate:-2}:false} animate={{opacity:1,scale:1,rotate:0}} exit={motion?{opacity:0,y:-18,transition:{duration:.12}}:undefined} transition={{type:'spring',stiffness:420,damping:24}}>{frames[frame]}</m.p></AnimatePresence>
+      <AnimatePresence mode="wait" initial={false}><m.p className="battle-caption" key={frame} initial={motion?{opacity:0,scale:1.18,rotate:-2}:false} animate={{opacity:1,scale:1,rotate:0}} exit={motion?{opacity:0,y:-18,transition:{duration:.12}}:undefined} transition={{type:'spring',stiffness:420,damping:24}}>{frames[frame]}</m.p></AnimatePresence>
       <span className="battle-progress" aria-hidden="true">{frames.map((_,i)=><i key={i} className={i<frame?'done':i===frame?(playing?'live':'done'):''} style={{'--dur':`${5000/frames.length}ms`} as React.CSSProperties}/>)}</span>
     </div>
     <div className="battle-controls">
