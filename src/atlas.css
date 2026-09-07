@@ -27,7 +27,7 @@
 .atlas-grand-label{fill:#d7c590;font-family:Georgia,serif;font-size:44px;letter-spacing:14px}
 .atlas-tiny-label{fill:#c9c5a6;font-size:12px;letter-spacing:3px}
 .atlas-pin{cursor:pointer;outline:none}.atlas-pin:focus-visible .atlas-pin-ring{stroke:#fff8e7;stroke-width:4px}.atlas-pin:hover .atlas-island-art,.atlas-pin.is-active .atlas-island-art{filter:url(#island-shadow)}
-.atlas-island-art{transform-box:fill-box}.atlas-pin-label{font-family:var(--font-body)}
+.atlas-island-art{transform-box:view-box}.atlas-pin-label{font-family:var(--font-body)}
 .atlas-island-art>svg{width:320px;height:180px;overflow:visible}
 .atlas-map-caption{position:absolute;left:18px;top:15px;display:flex;gap:9px;align-items:center;pointer-events:none;color:#b8d0c9;font-size:9px;letter-spacing:1.2px;font-weight:800}
 .map-live-dot{width:5px;height:5px;background:#84d5b5;box-shadow:0 0 8px #58c299;border-radius:50%}

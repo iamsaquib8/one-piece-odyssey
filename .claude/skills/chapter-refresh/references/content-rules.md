@@ -56,7 +56,7 @@ battle(id, title, chapters, stakes, development, outcome, frames)
 Roughly a hundred characters have hand-drawn portraits; everyone else renders through a deterministic fallback, which is fine but plainer. Read the real list rather than trusting one written down here:
 
 ```bash
-grep -oE "^  '?[a-z0-9-]+'?: P\(" src/components/CharacterPortrait.tsx | tr -d " ':P(" 
+grep -oE "^  '?[a-z0-9-]+'?: P\(" src/components/CharacterPortrait.tsx | tr -d " ':P("
 ```
 
 Match a cast id to an existing recipe id wherever the character is the same person. Note the aliases: Akainu is `sakazuki`, Aokiji is `kuzan`.

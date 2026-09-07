@@ -29,7 +29,7 @@ export function planetTexture(){
 
 export function createLandmark(id:string,color:string){
   const group=new THREE.Group();group.userData.placeId=id;
-  
+
   const materials=new Map<string,THREE.MeshStandardMaterial>();
   function material(c:string){if(!materials.has(c))materials.set(c,new THREE.MeshStandardMaterial({color:c,roughness:.85}));return materials.get(c)!;}
   function box(x:number,y:number,z:number,w:number,h:number,d:number,c:string){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(c));mesh.position.set(x,y+h/2,z);group.add(mesh);return mesh;}
