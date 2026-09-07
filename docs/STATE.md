@@ -8,15 +8,19 @@ The app is complete and green. It is now called **One Piece Odyssey** (renamed f
 
 Coverage runs from chapter 1 to **1191**, the latest released chapter as of 6 September 2026. Elbaf is marked `ongoing`.
 
+Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**, repository at **[github.com/iamsaquib8/one-piece-odyssey](https://github.com/iamsaquib8/one-piece-odyssey)**.
+
+To pull in newly released chapters, use the `chapter-refresh` skill in `.claude/skills/` — it owns the whole procedure, and `npm run refresh:audit` reports what is stale.
+
 ## Verification, last run 6 September
 
 | Command | Result |
 |---|---|
-| `npm run validate` | ✓ 33 arcs · 234 beats · 93 battles · 70 locations · 10 crew · 42 connections · 483 cast entries · coverage Ch. 1–1191 |
+| `npm run validate` | ✓ 33 arcs · 234 beats · 93 battles · 70 locations · 113 character profiles · 46 crews/factions · 42 connections · 483 cast entries · coverage Ch. 1–1191 |
 | `npm run typecheck` | clean |
-| `npm test` | 4 files, 19 tests passed |
-| `npm run build` | built clean; one chunk-size warning, see follow-ups |
-| `npm run test:e2e` | 24 passed, desktop Chrome and Pixel 7, axe included |
+| `npm test` | 5 files, 22 tests passed |
+| `npm run build` | built clean; lazy globe and reader chunk-size warnings, see follow-ups |
+| `npm run test:e2e` | 36 passed, desktop Chrome and Pixel 7, axe included; 320/390/768px and landscape layout checks |
 
 Playwright runs against the built output through the preview server, so **rebuild before running end-to-end tests** or you will test a stale `dist`.
 
@@ -33,6 +37,14 @@ Playwright runs against the built output through the preview server, so **rebuil
 - The validator was extended to enforce all of the above.
 
 The design record for this work is `docs/superpowers/specs/2026-09-06-arc-detail-design.md`.
+
+**Later the same evening — refresh tooling.** Keeping up with the manga became a repeatable procedure rather than a memory exercise:
+
+- `.claude/skills/chapter-refresh/` — the skill an agent loads when asked to refresh the story, with the research recipe and the content rules as reference files.
+- `npm run refresh:audit` (`scripts/refresh-audit.ts`) — reports the gap between released and narrated, and finds every place that repeats an edition fact and has drifted. `--strict` exits non-zero, so it can gate CI later.
+- Edition facts were pulled out of the code that repeated them: the crew page's chapter horizon, the journey page's chapter ticks, and both Playwright suites now read `coverage.ts` instead of a literal, and the saga/arc count assertions derive from the data.
+- Battles stopped being captions on a gradient. `FightStage` plays each battle as a scene on the arc's island: the acting side lunges, the other reels, an impact star and a comic sound word land on the beat, speed lines rake out, and a momentum marker swings to the verdict. The choreography is derived — which side a caption names, falling back to alternating, with the winner landing the last blow — so all 93 battles animate without any per-fight authoring.
+- Fixed what the audit and a dry run surfaced: two UI claims that Elbaf coverage "stops at the arrival" (untrue since the arc reached 1191), six crew chapter ranges still frozen at the previous cutoff, and the four Elbaf sub-locations missing an atlas parent, which had them scattering instead of clustering on the island.
 
 ## Content inventory
 
@@ -67,13 +79,15 @@ Each has a matching `staging-*.ts`. `staging.ts` merges them and `crew-roster.ts
 - New World: Wano's Flower Capital beat is deliberately broad at 927–958; Egghead's Luffy versus Kizaru at 1092–1107.
 - Elbaf: the twins' mother's name, Rocks's bounty figure, and volume numbers were left out for lack of confidence. Imu is written as "it" before chapter 1179 and "he" after, following the source's own inconsistency.
 
-**Art.** `god-valley` has no scene alias in `PixelScene.tsx`, so it falls back to the night "mystery" scene. Several settlements reuse their island's art.
+**Art.** `god-valley` has no scene alias in `PixelScene.tsx`, so it falls back to the night "mystery" scene, and no canonical position. The globe deliberately leaves it unplaced, with its field notes available in the searchable list. The flat chart treats its placement as narrative geography. Several settlements reuse their island's art.
+
+**Screenshots.** `docs/screenshots/journey.webp` and `arc-title-card.webp` show the chapter numbers, so they go stale on a refresh. There is no capture script; they were taken by hand.
 
 **Reader.** Cast galleries on the largest arcs run long: Wano 22, Egghead 22, Elbaf 26, Marineford 17. Trim the non-crew entries if the section feels heavy.
 
-**Bundle.** Two chunks exceed the 400 kB warning limit: `crews` at about 502 kB and `GlobeView` at about 529 kB (Three.js). Neither loads on the journey page, but both are worth splitting or trimming. The main chunk is about 291 kB, 90 kB gzipped.
+**Bundle.** Two chunks exceed the 400 kB warning limit: `DetailOverlay` at about 546 kB and `GlobeView` at about 543 kB (Three.js). Neither loads on the initial journey page. The globe is about 139 kB gzip; the detailed reader is about 186 kB gzip. The main chunk is about 291 kB, 90 kB gzipped.
 
-**Codex's files.** A concurrent Codex CLI session (process started 15:27) built `ExplorerViews.tsx`, `WorldAtlas.tsx`, `GlobeView.tsx`, `CrewView.tsx`, `atlas-model.ts`, `crews.ts` and the legal notices. It has been idle since 16:54 but the process is still alive, so it may still write. It shipped `ExplorerViews.tsx` referencing a `LegalView` it never defined, which broke the build; a minimal one was restored from `data/legal.ts` and the existing `.legal-*` styles. If Codex intended something richer there, that is the place to look.
+**Globe and fleet update.** The world atlas now defaults to a rotatable Three.js globe with 3D landmarks, globe routes, region flights, responsive label density, and a flat-chart fallback. Crew discovery now includes 42 pirate crews, four factions, and 113 character profiles with original animated SVG portraits. Crew and character records share the existing overlay/history and logbook. The registry has a separate content horizon (`crewCoverageThrough`); its concise supporting profiles are not the same editorial coverage as the full arc reader. Maintenance instructions are in `docs/ATLAS-MAINTENANCE.md`.
 
 **Local-only notes.** `docs/research/` holds the chapter-by-chapter Elbaf outline and the brief the content writers worked from. It is gitignored on purpose, since it is derived from wiki research rather than written for publication. Keep it if you plan more content work.
 
@@ -84,4 +98,4 @@ Each has a matching `staging-*.ts`. `staging.ts` merges them and `crew-roster.ts
 3. Replace the MIT copyright holder line, currently "One Piece Odyssey contributors", with a real name if you want attribution.
 4. Consider whether the takedown contact address, currently a personal Gmail in `src/data/legal.ts`, is the address you want indexed on a public site.
 5. Editorial pass over the flagged chapter boundaries above.
-6. Deploy to Netlify. `netlify.toml` is written and its content security policy was verified against the real build: no blocked scripts, styles, fonts or images, fonts still load, the arc reader still renders. Connect the repository in Netlify, or run `npx netlify deploy --prod --dir=dist` after a build.
+6. ~~Deploy to Netlify.~~ **Done** — live at one-piece-odyssey.netlify.app. `netlify.toml` is written and its content security policy was verified against the real build: no blocked scripts, styles, fonts or images, fonts still load, the arc reader still renders. Connect the repository in Netlify, or run `npx netlify deploy --prod --dir=dist` after a build.

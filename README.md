@@ -1,5 +1,7 @@
 # One Piece Odyssey
 
+**[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**
+
 An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 234 story beats, 93 battle logs and 70 places, narrated through chapter **1191**.
 
 Everything you see is drawn in code. There are no manga panels, scans or translations anywhere in this repository.
@@ -112,7 +114,7 @@ Rights holders who want something changed or removed: the contact address is on 
 
 ## Deploying
 
-Hosted on **Netlify**, configured by [`netlify.toml`](netlify.toml). Connect the repository and Netlify reads everything it needs: `npm run build`, publish `dist/`, Node 20.
+Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**, hosted on Netlify and configured by [`netlify.toml`](netlify.toml). Connect the repository and Netlify reads everything it needs: `npm run build`, publish `dist/`, Node 20.
 
 The config also sets the pieces a static site still needs:
 
@@ -130,3 +132,7 @@ npx netlify deploy --prod --dir=dist
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `npm run validate` after touching content, keep animation behind the motion toggle, and never add manga artwork.
+
+## Keeping up with the manga
+
+The story cutoff lives in `src/data/coverage.ts`. `npm run refresh:audit` reports how far behind the edition is and finds any place that repeats an edition fact and has drifted from it. The full procedure for pulling in newly released chapters — research, writing, art, verification — is the `chapter-refresh` skill in `.claude/skills/`.

@@ -20,5 +20,12 @@ Source of intent: user-provided cinematic manga explorer plan and concept art (`
 - Editorial source pass on the Summit War and New World summaries (chapter boundaries flagged by the writers: Grove 42 vs 46, Egghead 1119–1122 satellite roster, Zou beat overlap 818–820).
 - Elbaf is narrated through chapter 1191 (13 beats, 5 battles) from a chapter-by-chapter research outline; still `ongoing` and `draft`. `god-valley` has no dedicated scene kind and falls back to the night “mystery” scene.
 - Cast sizes on the big arcs (Wano, Egghead, Elbaf, Marineford: 17–26) exceed the 6–12 guideline; trim if the gallery feels long.
-- Codex’s `ExplorerViews.tsx` shipped without its `LegalView`; a minimal one was restored from `data/legal.ts` and the existing `.legal-*` styles so `tsc -b` passes and `tests/legal.spec.ts` is green.
+- Legal notices remain integrated with the existing data and styles.
 - Scenes are shared per scene kind; several settlements reuse their island's art.
+
+
+## Globe and crew expansion
+
+The atlas now opens as an interactive 3D globe with raised island models, Red Line terrain, Grand Line and Calm Belt waters, spherical routes, horizon-aware labels, orbit/pinch/keyboard input, region flights, zoom controls and optional automatic rotation. The searchable inspector, voyage player, saves and detailed location links work in both globe and flat-chart modes. The flat chart is also the explicit WebGL fallback. Coordinates remain schematic; unknown globe positions are omitted.
+
+The fleet registry now contains 42 pirate crews and four related factions, ordered by story relevance, with category/story filters and 113 character profiles. Original animated SVG portraits replace initials. Crew/character search, saved records and browser overlay history are connected. Supporting crew coverage is explicitly tracked separately from arc coverage. See `docs/ATLAS-MAINTENANCE.md` for authoring and validation.

@@ -12,10 +12,16 @@ import { PixelBurst, useBurst } from './components/PixelBurst';
 const DetailOverlay = lazy(() => import('./components/DetailOverlay'));
 const ExplorerViews = lazy(() => import('./components/ExplorerViews'));
 
-const navItems = [{ id: 'journey', label: 'Journey', Icon: Compass }, { id: 'world', label: 'World', Icon: Globe2 }, { id: 'crew', label: 'Crew', Icon: Users }, { id: 'saved', label: 'Saved', Icon: Bookmark }] as const;
+const navItems = [{ id: 'journey', label: 'Journey', Icon: Compass }, { id: 'world', label: 'World', Icon: Globe2 }, { id: 'crew', label: 'Crews', Icon: Users }, { id: 'saved', label: 'Saved', Icon: Bookmark }] as const;
 const sagaIcons: Record<string, typeof Compass> = { 'east-blue': Compass, alabasta: Sun, 'sky-island': Cloud, 'water-seven': Building2, 'thriller-bark': Ghost, 'summit-war': Swords, 'fish-man-island': Fish, 'punk-hazard': Flame, dressrosa: Crown, 'whole-cake-island': Cake, wano: Mountain, egghead: Cpu, elbaf: TreePine };
 const stopLabels = ['ARRIVAL', 'NEXT STOP', 'THEN', 'ONWARD', 'FURTHER', 'BEYOND', 'AND THEN', 'AT LAST', 'STILL FURTHER'];
-const TRACK = [1, 100, 300, 500, 700, 900, 1100];
+/** Chapter ticks for the voyage strip, ending on the last hundred this edition covers. */
+const TRACK = ((last: number) => {
+  const ticks = [1, 100];
+  for (let n = 300; n < last; n += 200) ticks.push(n);
+  if (last > 100) ticks.push(last);
+  return ticks;
+})(Math.floor(coverage.coveredThrough / 100) * 100);
 function initialReader() { try { return readReader(window.localStorage); } catch { return decodeReader(null); } }
 
 /** Sets data-seen once and toggles data-inview while on screen (attributes React never rewrites), so entrances run once and ambient loops pause off-screen. */
@@ -160,7 +166,7 @@ export default function App() {
             </section>
             <section className="voyage-strip" aria-label="Your voyage progress">
               <div className="voyage-range"><span className="round-icon"><BookOpen size={26} /></span><div><span className="micro">YOUR VOYAGE</span><strong>Ch. 1 – {coverage.coveredThrough}</strong><small>{activeSagaRecord?.name || 'East Blue'} saga</small></div></div>
-              <div className="chapter-track" role="group" aria-label="Jump to a chapter"><span className="track-ship" style={{ left: `${trackPercent}%` }} aria-hidden="true"><Ship size={16} /></span>{TRACK.map((n) => <button key={n} className={progressChapter >= n ? 'reached' : ''} onClick={() => jumpChapter(n)} aria-label={`Jump to chapter ${n}`}><i />{n === 1100 ? '1100+' : n}</button>)}</div>
+              <div className="chapter-track" role="group" aria-label="Jump to a chapter"><span className="track-ship" style={{ left: `${trackPercent}%` }} aria-hidden="true"><Ship size={16} /></span>{TRACK.map((n, i) => <button key={n} className={progressChapter >= n ? 'reached' : ''} onClick={() => jumpChapter(n)} aria-label={`Jump to chapter ${n}`}><i />{i === TRACK.length - 1 ? `${n}+` : n}</button>)}</div>
               <button className="logbook-button" onClick={() => navigate('saved')}><span className="round-icon"><Bookmark size={22} /></span><span><strong>Your logbook</strong><small>{reader.explored.length} / {arcs.length} arcs explored · {reader.saved.length} saved</small></span><ArrowRight size={18} className="logbook-arrow" /></button>
             </section>
             <div className="mobile-saga-select"><label htmlFor="saga-select">CHOOSE A SAGA</label><div><select id="saga-select" value={activeSaga} onChange={(e) => jumpSaga(e.target.value)}>{sagas.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><ChevronDown size={17} /></div></div>
@@ -223,7 +229,7 @@ function SagaSection({ saga: s, index: sagaIndex, reader, hoverArc, setHoverArc,
     : s.id === 'sky-island' ? <div className="boundary-banner sky" data-reveal><Wind /><div><strong>A voyage into the sky</strong><span>The Knock Up Stream carries the journey above the Blue Sea.</span></div><Sparkles /></div>
     : s.id === 'fish-man-island' ? <div className="boundary-banner underwater" data-reveal><span className="bubbles" aria-hidden="true"><i /><i /><i /><i /></span><MapPin /><div><strong>10,000 meters beneath the sea</strong><span>A coated ship, an underwater passage, and a route to the New World.</span></div><Wind /></div>
     : s.id === 'egghead' ? <div className="boundary-banner" data-reveal><Compass /><div><strong>The Final Saga begins</strong><span>Egghead opens the last chapter of the voyage. What follows is still being written.</span></div><Sparkles /></div>
-    : s.id === 'elbaf' ? <div className="boundary-banner" data-reveal><Compass /><div><strong>Beyond the known horizon</strong><span>Elbaf is ongoing. This edition stops at the arrival; unrevealed destinations remain mysteries.</span></div><Globe2 /></div> : null;
+    : s.id === 'elbaf' ? <div className="boundary-banner" data-reveal><Compass /><div><strong>Beyond the known horizon</strong><span>Elbaf is ongoing. This edition follows it through chapter {coverage.coveredThrough}; what comes after is still being drawn.</span></div><Globe2 /></div> : null;
   return <section id={`saga-${s.id}`} data-saga className={`saga-section saga-${s.id}`} style={{ '--saga-color': s.color } as CSSProperties}>
     {banner}
     <div className="saga-grid">

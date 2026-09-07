@@ -21,6 +21,10 @@ npm run test:e2e     # runs against the built output
 
 All five must pass. `npm run test:e2e` starts a preview server on port 4173 itself.
 
+## Pulling in newly released chapters
+
+Use the `chapter-refresh` skill in `.claude/skills/chapter-refresh/`. It owns the whole procedure: how to find the latest released chapter (a wiki page exists before the chapter does), how to research it, what to write, and what else has to move with it. Start with `npm run refresh:audit`, which reports how far behind the edition is and which repeated facts have drifted.
+
 ## Adding or editing story content
 
 Content is split so several people can work without collisions. Prose and stage directions live in separate files.

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { coverage } from '../src/data/coverage';
 
 test.describe('Notices', () => {
   test('footer carries edition facts and every notice, on all views', async ({ page }) => {
@@ -12,7 +13,7 @@ test.describe('Notices', () => {
     await expect(footer).toContainText('ONE PIECE © Eiichiro Oda / Shueisha');
     await expect(footer).toContainText('no affiliation');
     await expect(footer).toContainText('Full manga spoilers');
-    await expect(footer).toContainText('Story through Ch. 1191');
+    await expect(footer).toContainText(`Story through Ch. ${coverage.coveredThrough}`);
   });
 
   test('a footer notice opens the legal view at that section and is linkable', async ({ page }) => {
