@@ -166,7 +166,7 @@ export default function App() {
             <div className="mobile-saga-select"><label htmlFor="saga-select">CHOOSE A SAGA</label><div><select id="saga-select" value={activeSaga} onChange={(e) => jumpSaga(e.target.value)}>{sagas.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><ChevronDown size={17} /></div></div>
             {sagas.map((s, sagaIndex) => <SagaSection key={s.id} saga={s} index={sagaIndex} reader={reader} hoverArc={hoverArc} setHoverArc={setHoverArc} onOpen={open} onSave={save} onJumpArc={jumpArc} onNavigate={navigate} />)}
             <section className="horizon" data-reveal><Compass size={48} className="horizon-compass" /><h2>The adventure isn’t over.</h2><p>There are still dreams to chase and seas to cross.<br />Keep your Log Pose pointed toward the next story.</p><button className="button primary" onClick={() => navigate('world')}>Explore the whole world <ArrowRight size={18} /></button><span className="micro">LAUGH TALE · LOCATION UNREVEALED</span></section>
-          </> : <Suspense fallback={<div className="loading-state"><Compass className="loading-icon" /><p>Unfolding the chart…</p></div>}><ExplorerViews view={route.view} route={route} reader={reader} onOpen={open} onNavigate={navigate} onJumpSaga={jumpSaga} onSave={(id) => save(id)} /></Suspense>}
+          </> : <Suspense fallback={<div className="loading-state"><Compass className="loading-icon" /><p>Unfolding the chart…</p></div>}><ExplorerViews motion={motion} view={route.view} route={route} reader={reader} onOpen={open} onNavigate={navigate} onJumpSaga={jumpSaga} onSave={(id) => save(id)} /></Suspense>}
         </m.div>
       </AnimatePresence>
       <footer className="site-footer">

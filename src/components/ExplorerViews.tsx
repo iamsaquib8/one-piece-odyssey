@@ -11,7 +11,7 @@ import type { Location, ReaderState, Route, View } from '../types';
 import { encodeRoute } from '../state';
 
 type OpenFn = (kind: NonNullable<Route['kind']>, id: string, beat?: string) => void;
-interface Props { view: View; route: Route; reader: ReaderState; onOpen: OpenFn; onNavigate: (view: View) => void; onJumpSaga: (id: string) => void; onSave: (id: string) => void }
+interface Props { motion:boolean; view: View; route: Route; reader: ReaderState; onOpen: OpenFn; onNavigate: (view: View) => void; onJumpSaga: (id: string) => void; onSave: (id: string) => void }
 
 const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, '').toLowerCase();
 

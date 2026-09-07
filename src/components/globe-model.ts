@@ -14,7 +14,8 @@ const main:Record<string,[number,number]>={
   'punk-hazard':[7,31],'dressrosa':[-7,52],'zou':[8,75],'whole-cake-island':[-8,94],
   'wano-country':[7,114],'egghead':[-6,138],'elbaf':[9,157],
 };
-export const globePlaces=atlasPlaces.map(p=>{
+// God Valley's exact position is unrevealed: keep its field notes in the list, off the globe.
+export const globePlaces=atlasPlaces.filter(p=>p.id!=='god-valley').map(p=>{
   const parent=main[p.parentId];
   const [lat,lon]=main[p.id]||(parent?[parent[0]+(p.y-(atlasPlaces.find(a=>a.id===p.parentId)?.y||p.y))*.025,parent[1]+(p.x-(atlasPlaces.find(a=>a.id===p.parentId)?.x||p.x))*.04]:[0,0]);
   return {...p,lat,lon};
@@ -24,4 +25,4 @@ export function spherePoint({lat,lon}:GeoPoint,radius=2.5):[number,number,number
   const a=lat*Math.PI/180,b=lon*Math.PI/180;
   return [radius*Math.cos(a)*Math.sin(b),radius*Math.sin(a),radius*Math.cos(a)*Math.cos(b)];
 }
-export const regionViews:Record<string,GeoPoint>={all:{lat:23,lon:-65},'east-blue':{lat:34,lon:-127},paradise:{lat:19,lon:-74},'new-world':{lat:18,lon:95},sky:{lat:40,lon:-74}};
+export const regionViews:Record<string,GeoPoint>={all:{lat:23,lon:-28},'east-blue':{lat:34,lon:-127},paradise:{lat:19,lon:-74},'new-world':{lat:18,lon:95},sky:{lat:40,lon:-74}};

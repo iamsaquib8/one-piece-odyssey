@@ -23,9 +23,9 @@ const anchors:Record<string,[number,number]>={
   'whisky-peak':[765,650],'little-garden':[850,850],'drum-island':[950,620],
   'alabasta':[1080,860],'jaya':[1125,625],'white-sea':[1050,300],'angel-island':[1200,200],
   'upper-yard':[1335,330],'long-ring-long-land':[1240,775],'water-seven':[1355,570],
-  'enies-lobby':[1475,775],'florian-triangle':[1350,935],'thriller-bark':[1500,970],
+  'enies-lobby':[1475,775],'florian-triangle':[1300,970],'thriller-bark':[1500,970],
   'sabaody-archipelago':[1600,595],'amazon-lily':[1480,1160],'impel-down':[1640,1110],
-  'marineford':[1670,855],'fish-man-island':[1780,910],'mary-geoise':[1775,490],
+  'marineford':[1650,820],'fish-man-island':[1780,910],'mary-geoise':[1775,490],
   'punk-hazard':[1920,665],'dressrosa':[2075,550],'zou':[1950,870],
   'whole-cake-island':[2140,890],'wano-country':[2290,705],
   'egghead':[2220,420],'elbaf':[2280,220],
@@ -39,6 +39,7 @@ const parents:Record<string,string>={
   'human-auctioning-house':'sabaody-archipelago','rusukaina':'amazon-lily','ryugu-palace':'fish-man-island',
   'green-bit':'dressrosa','cacao-island':'whole-cake-island','mirror-world':'whole-cake-island',
   'flower-capital':'wano-country','udon':'wano-country','ringo':'wano-country','onigashima':'wano-country',
+  'elbaf-walrus-town':'elbaf','elbaf-aurust-castle':'elbaf','elbaf-owl-library':'elbaf','elbaf-underworld':'elbaf',
 };
 const childOffsets:[[number,number],[number,number],[number,number],[number,number],[number,number]]=[[65,70],[-65,95],[70,-55],[-70,-60],[0,140]];
 export const atlasPlaces=locations.map(l=>{

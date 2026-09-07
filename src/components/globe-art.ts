@@ -6,9 +6,9 @@ export function planetTexture(){
   const ctx=canvas.getContext('2d')!;const data=ctx.createImageData(canvas.width,canvas.height);
   for(let y=0;y<768;y++)for(let x=0;x<1536;x++){
     const lat=90-y/768*180,lon=x/1536*360-90;
-    const noise=Math.sin(x*.051+Math.sin(y*.026)*4)*Math.cos(y*.06)+Math.sin(x*.19+y*.07)*.35;
+    const noise=Math.sin(x*.043+Math.sin(y*.037)*5)*Math.cos(y*.09)*.3+Math.sin(x*.17+y*.13)*.2;
     const redDistance=Math.abs(Math.sin((lon-10)*Math.PI/180));
-    const red=redDistance<.033+Math.sin(y*.075)*.01+Math.sin(y*.2)*.005;
+    const red=redDistance<.055+Math.sin(y*.075)*.01+Math.sin(y*.2)*.005;
     const calm=Math.abs(lat)>14&&Math.abs(lat)<21;
     const belt=Math.abs(lat)<14;
     let color=red?[155+noise*16,77+noise*11,48+noise*8]:calm?[12+noise*2,60+noise*4,77+noise*5]:belt?[15+noise*3,117+noise*9,138+noise*9]:[12+noise*3,78+noise*8,112+noise*10];
@@ -29,7 +29,7 @@ export function planetTexture(){
 
 export function createLandmark(id:string,color:string){
   const group=new THREE.Group();group.userData.placeId=id;
-  const ink=new THREE.MeshStandardMaterial({color:'#153b37',roughness:.85});
+
   const materials=new Map<string,THREE.MeshStandardMaterial>();
   function material(c:string){if(!materials.has(c))materials.set(c,new THREE.MeshStandardMaterial({color:c,roughness:.85}));return materials.get(c)!;}
   function box(x:number,y:number,z:number,w:number,h:number,d:number,c:string){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material(c));mesh.position.set(x,y+h/2,z);group.add(mesh);return mesh;}
@@ -61,6 +61,6 @@ export function createLandmark(id:string,color:string){
   else if(id==='dressrosa'){cylinder(0,.03,0,.065,.13,'#c19d80',.075,7);house(0,0,'#dfcfa7','#b77488');cone(0,.16,0,.045,.1,'#e7cfb2',6);}
   else if(id==='whisky-peak'){[-.05,0,.05].forEach((x,i)=>cylinder(x,.02,0,.026,.11+i*.015,'#789174',.02,6));}
   else{for(let i=0;i<3;i++)house((i-1)*.05,(i%2)*.04,'#e1c8a0',color,.8);tree(-.055,-.03);tree(.049,-.042);}
-  ink.dispose();
+
   return group;
 }

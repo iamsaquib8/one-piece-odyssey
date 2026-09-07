@@ -56,3 +56,8 @@ Keep important labels outside decorative art. Show spoilers and publication/edit
 
 ## Arc reader (illustrated log)
 Opening an arc is a title card, not a document: the island panorama with a saga-colour wash, the arc name slammed in, a hook line, chapter counters, and a ship crossing once. Below it the reader is staged like a manga volume — who is aboard, who stands where (crew gold, allies teal, wild cards violet, foes coral), then the voyage as a gold route the reader draws by scrolling. Each beat is a diorama: the staged location under a beat-specific camera, mood (dawn, day, dusk, night, storm, flashback = sepia, grain and film sprockets), and the people present standing on the shore. Battles open with a versus card and a verdict stamp. Everything stays code-native pixel art; no manga panels are reproduced.
+
+## Map density and mobile controls
+The globe is the main visual surface. Keep zoom, reset, rotation and layers outside its canvas, with the layers panel in document flow. At world scale, label only the selected destination. Reveal additional names as the reader zooms: a maximum of three on small canvases and seven on wide canvases. `map-labels.ts` places measured labels within the viewport without intersecting other labels.
+
+Phones use a native sea selector, 44px touch controls, and a compact selected-location action below the globe. “Find an island” focuses the searchable inspector; panning is never required to find a location. At tablet widths the inspector moves below the map to preserve the globe's size. Keep the header, footer and crew cards within 320px layouts.

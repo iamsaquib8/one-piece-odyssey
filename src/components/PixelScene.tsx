@@ -370,5 +370,7 @@ export default PixelScene;
 /** A transparent landmark for the navigational atlas; shares the scene's original art. */
 export function MapIsland({locationId}:{locationId:string}) {
   const scene=resolveScene(locationId);
-  return <svg viewBox="0 0 320 180" aria-hidden="true" focusable="false" overflow="visible" shapeRendering="crispEdges"><SceneLandmark kind={scene.kind} p={scene.palette} mobile={false}/></svg>;
+  // Nested SVG viewports need explicit dimensions; CSS alone can leave them
+  // sized to the entire atlas, enlarging and displacing every landmark.
+  return <svg width={320} height={180} viewBox="0 0 320 180" aria-hidden="true" focusable="false" overflow="visible" shapeRendering="crispEdges"><SceneLandmark kind={scene.kind} p={scene.palette} mobile={false}/></svg>;
 }
