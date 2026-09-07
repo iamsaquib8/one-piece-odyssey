@@ -1,0 +1,67 @@
+/* The motion comic extends the shared paper controls; its clock owns all scene movement. */
+.motion-comic { --comic-muted: #a9c5cb; }
+.motion-comic .battle-heading .micro, .motion-comic .battle-copy dt { color: var(--ink-soft); }
+.comic-player { overflow: hidden; border: 2px solid var(--ink); border-radius: var(--radius); background: var(--ink); }
+.comic-slate { min-height: 40px; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 10px 16px; color: var(--paper); font: 8px/1.8 var(--font-utility); text-transform: uppercase; }
+.comic-slate > span:first-child { color: var(--gold); flex-shrink: 0; }
+.comic-slate > span:last-child { text-align: right; }
+.battle-card .motion-comic .comic-stage { display: block; width: 100%; height: auto; aspect-ratio: 2 / 1; min-height: 0; padding: 0; border: 0; border-radius: 0; cursor: pointer; background: var(--ink); isolation: isolate; }
+.comic-stage:hover { filter: none; }
+.comic-stage:focus-visible { outline: 3px solid var(--gold); outline-offset: -4px; z-index: 1; }
+.comic-stage:active { box-shadow: inset 0 0 0 3px var(--gold); }
+.laboon-scene, .comic-scene, .comic-world, .comic-ground, .comic-effects, .comic-dust { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+.comic-world { transform-origin: 50% 55%; }
+.comic-ground { background: radial-gradient(ellipse at 50% 30%, var(--sea), var(--ink)); }
+.comic-ground .scene { width: 100%; height: 100%; border: 0; border-radius: 0; aspect-ratio: auto; box-shadow: none; }
+.comic-ground .scene svg { width: 100%; height: 100%; }
+.comic-atmosphere { position: absolute; inset: 0; background: linear-gradient(180deg, #10243a22, #10243a44 45%, #10243abb); }
+.comic-play-cue { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 10px 16px; white-space: nowrap; color: var(--ink); background: var(--paper); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); font-size: 14px; font-weight: 900; }
+.comic-stage:hover .comic-play-cue { background: var(--gold); }
+.comic-caption { display: flex; align-items: center; gap: 16px; min-height: 84px; padding: 16px 20px; color: var(--paper); border-top: 3px solid var(--gold); }
+.comic-caption > span { color: var(--gold); font: 10px/1.8 var(--font-utility); }
+.comic-caption p { margin: 0; font-size: clamp(17px, 2vw, 22px); font-weight: 900; font-style: italic; line-height: 1.3; }
+.comic-scrubber { display: flex; align-items: center; gap: 16px; padding: 0 20px 6px; }
+.comic-scrubber input { display: block; flex: 1; min-width: 0; min-height: 44px; margin: 0; accent-color: var(--gold); cursor: pointer; }
+.comic-scrubber input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.comic-scrubber > span { color: var(--comic-muted); font: 8px/1.8 var(--font-utility); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.motion-comic .battle-controls { gap: 12px; }
+.motion-comic .comic-play { min-width: 162px; min-height: 44px; justify-content: center; }
+.comic-transport { display: flex; gap: 8px; }
+.comic-transport .icon-button { width: 44px; height: 44px; }
+.comic-speed { display: flex; margin-left: auto; border: 2px solid var(--ink); border-radius: var(--radius); overflow: hidden; }
+.comic-speed button { min-width: 44px; min-height: 44px; border: 0; border-right: 1px solid var(--ink); background: var(--paper); color: var(--ink); font: 800 13px var(--font-body); cursor: pointer; }
+.comic-speed button:last-child { border-right: 0; }
+.comic-speed button[aria-pressed='true'] { background: var(--ink); color: var(--gold); }
+.comic-speed button:hover:not(:disabled) { background: var(--gold); color: var(--ink); }
+.comic-speed button:active:not(:disabled) { background: var(--coral); }
+.comic-speed button:focus-visible { outline: 3px solid var(--sea); outline-offset: -4px; }
+.comic-speed button:disabled { opacity: .45; cursor: not-allowed; }
+.motion-comic .comic-help { margin: 8px 0 20px; color: var(--ink-mute); font-size: 12px; line-height: 1.5; }
+.comic-team { position: absolute; bottom: 16%; display: flex; width: 25%; align-items: flex-end; }
+.comic-team-a { left: 12%; flex-direction: row-reverse; }
+.comic-team-b { right: 12%; }
+.comic-fighter { position: relative; display: block; width: 50%; flex-shrink: 0; margin: 0 -8%; transform-origin: 50% 90%; }
+.comic-puppet { display: block; position: relative; width: 100%; aspect-ratio: 130 / 175; }
+.comic-puppet > svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(3px 3px 0 #10243a66); }
+.comic-puppet-head { display: block; position: absolute; width: 54%; top: -1%; left: 23%; }
+.comic-puppet-head .character-portrait { display: block; width: 100%; aspect-ratio: 1; border: 0; outline: 0; background: none; box-shadow: none; }
+.comic-fighter-name { display: block; width: max-content; max-width: 155%; margin: 0 auto; padding: 3px 7px; font-size: clamp(9px, 1.1vw, 12px); line-height: 1.2; font-weight: 900; color: var(--ink); background: var(--paper); border: 1px solid var(--ink); }
+.comic-effects { pointer-events: none; }
+.comic-sfx { font: italic 900 55px var(--font-body); fill: var(--gold); stroke: var(--ink); stroke-width: 8px; paint-order: stroke; letter-spacing: -2px; }
+.comic-impact-word { position: absolute; top: 35%; left: 50%; color: var(--gold); font-size: clamp(24px, 5vw, 60px); font-weight: 900; font-style: italic; letter-spacing: -.04em; -webkit-text-stroke: 1px var(--ink); text-shadow: 4px 4px 0 var(--ink); }
+.comic-empty-scene { position: absolute; inset: 0; display: grid; place-items: center; font-size: 30px; font-weight: 900; font-style: italic; }
+/* Nested location/portrait art has ambient CSS loops; freeze those to keep seeking exact. */
+.motion-comic .comic-stage *, html[data-motion='on'] .motion-comic .comic-stage * { animation: none; transition: none; }
+@media (max-width: 760px) {
+  .battle-card .motion-comic { padding: 12px; }
+  .comic-slate { font-size: 6px; gap: 8px; padding: 10px; min-height: 42px; }
+  .comic-caption { padding: 12px; gap: 10px; min-height: 96px; }
+  .comic-scrubber { padding: 0 12px 4px; gap: 10px; }
+  .comic-scrubber > span { font-size: 7px; }
+  .comic-play-cue { bottom: 10px; font-size: 12px; padding: 7px 10px; }
+  .motion-comic .battle-controls { gap: 10px; }
+  .motion-comic .comic-play { min-width: 140px; flex: 1; }
+  .comic-speed { margin-left: 0; }
+  .motion-comic .battle-copy { grid-template-columns: 1fr; gap: 4px; }
+  .motion-comic .battle-copy dt:not(:first-child) { margin-top: 10px; }
+}
