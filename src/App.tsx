@@ -273,10 +273,10 @@ function ArcStop({ arc: a, index: i, reader, hovered, setHoverArc, onOpen, onSav
   const [peek, setPeek] = useState(false);
   return <article className={`arc-stop ${hovered ? 'hovered' : ''} ${explored ? 'explored' : ''}`} id={`arc-stop-${a.id}`} data-reveal data-route-stop style={{ '--stagger': i % 2 } as CSSProperties} onMouseEnter={() => setHoverArc(a.id)} onMouseLeave={() => { setHoverArc(null); setPeek(false); }}>
     <div className="island-block">
-      <button className="island-hotspot" aria-label={`Discover ${l?.name || a.name}`} onClick={() => onOpen('location', a.locationIds[0])} onFocus={() => setPeek(true)} onBlur={() => setPeek(false)} onPointerEnter={() => setPeek(true)} onPointerLeave={() => setPeek(false)}>
+      <button className="island-hotspot" aria-label={`Explore ${a.name} arc`} onClick={() => onOpen('arc', a.id)} onFocus={() => setPeek(true)} onBlur={() => setPeek(false)} onPointerEnter={() => setPeek(true)} onPointerLeave={() => setPeek(false)}>
         <span data-route-anchor className="scene-frame"><Scene locationId={a.locationIds[0]} name={l?.name || a.name} eager={i < 2 && a.sagaId === 'east-blue'} /></span>
         <span className="island-tag"><MapPin size={13} />{l?.name || a.name}<span>+</span></span>
-        <span className={`island-peek ${peek ? 'show' : ''}`} aria-hidden="true"><span className="micro">LOOK CLOSER</span>{(reader.spoilerThrough === null ? l?.landmarks || [] : []).slice(0, 3).map((x) => <em key={x}>{x}</em>)}</span>
+        <span className={`island-peek ${peek ? 'show' : ''}`} aria-hidden="true"><span className="micro">EXPLORE ARC</span><em>{a.name}</em><em>{chapterLabel(a)}</em></span>
       </button>
     </div>
     <div className="arc-copy">

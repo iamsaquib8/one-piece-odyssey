@@ -216,6 +216,22 @@ export default function CharacterPortrait({ characterId, name, color = '#087f91'
   const eyeY = recipe.kind === 'skull' ? 59 : 57;
 
   if (limited) return <span ref={host} className={`character-portrait ${className}`.trim()} style={style}><svg viewBox="0 0 120 120" role="img" aria-label={`${name ?? 'Character'} — portrait hidden to avoid later appearance spoilers`}><circle cx="60" cy="60" r="56" fill="var(--paper)"/><circle cx="60" cy="44" r="20" fill="var(--ink)"/><path d="M22 107V94a38 38 0 0 1 76 0v13" fill="var(--ink)"/></svg></span>;
+  if (characterId === 'laboon') return <span ref={host} className={`character-portrait ${className}`.trim()} data-active={active ? 'true' : 'false'} style={style}>
+    <svg viewBox="0 0 120 120" role="img" aria-label={`${name ?? 'Laboon'} — original illustrated portrait`}>
+      <defs><clipPath id={clipId}><circle cx="60" cy="60" r="56" /></clipPath></defs>
+      <g clipPath={`url(#${clipId})`} stroke="#10243a" strokeWidth="3" strokeLinecap="round">
+        <circle cx="60" cy="60" r="58" fill="#78bac2" />
+        <path d="M18 100Q8 30 54 20Q102 10 116 67L122 114Z" fill="#354b69" />
+        <path d="M24 85Q60 112 116 88V116H32Z" fill="#a5bdc0" />
+        <path d="M30 38l22 23m-5-27L30 65m33-26l11 17" stroke="#b9c6c7" fill="none" />
+        <circle cx="35" cy="75" r="7" fill="#fff8e7" /><circle cx="33" cy="76" r="3" fill="#10243a" />
+        <path d="M20 86Q44 98 69 88" fill="none" />
+        <path d="M-5 106Q20 96 48 108T125 104" fill="none" stroke="#d2efe6" strokeWidth="5" />
+      </g>
+      <circle cx="60" cy="60" r="56" fill="none" stroke="#10243a" strokeWidth="4" />
+    </svg>
+  </span>;
+
   return <span ref={host} className={`character-portrait ${className}`.trim()} data-active={active ? 'true' : 'false'} data-effect={recipe.effect} style={style}>
     <svg viewBox="0 0 120 120" role="img" aria-label={`${name ?? characterId} — original illustrated portrait`}>
       <defs><clipPath id={clipId}><circle cx="60" cy="60" r="56" /></clipPath></defs>
