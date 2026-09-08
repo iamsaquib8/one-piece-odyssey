@@ -10,13 +10,13 @@ import { Scene } from './components/Scene';
 import { VoyageRoute } from './components/VoyageRoute';
 import { PixelBurst, useBurst } from './components/PixelBurst';
 import { ReadingHorizonProvider, isArcVisible } from './reading-horizon';
-import { ReadingControls } from './components/ReadingControls';
+import { ReadingControls, DiscoveryNavigation } from './components/ReadingControls';
 const arcs = allArcs;
 const sagas = allSagas;
 const DetailOverlay = lazy(() => import('./components/DetailOverlay'));
 const ExplorerViews = lazy(() => import('./components/ExplorerViews'));
 
-const navItems = [{ id: 'journey', label: 'Journey', Icon: Compass }, { id: 'world', label: 'World', Icon: Globe2 }, { id: 'crew', label: 'Crews', Icon: Users }, { id: 'saved', label: 'Saved', Icon: Bookmark }] as const;
+const navItems = [{ id: 'journey', label: 'Journey', Icon: Compass }, { id: 'world', label: 'World', Icon: Globe2 }, { id: 'crew', label: 'Crews', Icon: Users }, { id: 'trails', label: 'Discover', Icon: Sparkles }, { id: 'saved', label: 'Saved', Icon: Bookmark }] as const;
 const sagaIcons: Record<string, typeof Compass> = { 'east-blue': Compass, alabasta: Sun, 'sky-island': Cloud, 'water-seven': Building2, 'thriller-bark': Ghost, 'summit-war': Swords, 'fish-man-island': Fish, 'punk-hazard': Flame, dressrosa: Crown, 'whole-cake-island': Cake, wano: Mountain, egghead: Cpu, elbaf: TreePine };
 const stopLabels = ['ARRIVAL', 'NEXT STOP', 'THEN', 'ONWARD', 'FURTHER', 'BEYOND', 'AND THEN', 'AT LAST', 'STILL FURTHER'];
 /** Chapter ticks for the voyage strip, ending on the last hundred this edition covers. */
@@ -46,6 +46,7 @@ export default function App() {
   const [route, setRoute] = useState<Route>(() => decodeRoute(window.location.search));
   const [reader, setReader] = useState<ReaderState>(initialReader);
   const through = reader.spoilerThrough;
+  const activeView = route.view === 'mysteries' ? 'trails' : route.view;
   const arcs = useMemo(() => allArcs.filter(a => isArcVisible(a, through)), [through]);
   const sagas = useMemo(() => allSagas.filter(s => arcs.some(a => a.sagaId === s.id)), [arcs]);
   const [toast, setToast] = useState('');
@@ -154,13 +155,14 @@ export default function App() {
     <a className="skip-link" href="#main">Skip to the voyage</a>
     <header className="site-header">
       <button className="brand" onClick={() => navigate('journey')} aria-label="One Piece Odyssey home"><img src="/favicon.svg" width="44" height="44" alt="" /><span>ONE PIECE<span className="brand-divider"> / </span><b>ODYSSEY</b></span></button>
-      <nav className="desktop-nav" aria-label="Main navigation">{navItems.map(({ id, label, Icon }) => <button key={id} className={route.view === id ? 'active' : ''} aria-current={route.view === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={17} />{label}{id === 'saved' && reader.saved.length > 0 ? <small>{reader.saved.length}</small> : null}{route.view === id ? <m.i layoutId="nav-ink" className="nav-ink" transition={{ type: 'spring', stiffness: 400, damping: 32 }} /> : null}</button>)}</nav>
+      <nav className="desktop-nav" aria-label="Main navigation">{navItems.map(({ id, label, Icon }) => <button key={id} className={activeView === id ? 'active' : ''} aria-current={activeView === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={17} />{label}{id === 'saved' && reader.saved.length > 0 ? <small>{reader.saved.length}</small> : null}{activeView === id ? <m.i layoutId="nav-ink" className="nav-ink" transition={{ type: 'spring', stiffness: 400, damping: 32 }} /> : null}</button>)}</nav>
       <button className="search-trigger" onClick={() => navigate('search')} aria-label="Search the explorer"><span>Search manga arcs, islands, characters…</span><kbd>/</kbd><Search size={18} /></button>
+      <ReadingControls through={through} onChange={setHorizon} />
       <button className="icon-button motion-toggle" onClick={() => setReader((r) => ({ ...r, motion: !r.motion }))} aria-label={reader.motion ? 'Turn animations off' : 'Turn animations on'} aria-pressed={reader.motion} title={reader.motion ? 'Animations on' : 'Animations off'}>{reader.motion ? <Pause size={16} /> : <Play size={16} />}</button>
     </header>
     <aside className="saga-rail"><span className="micro rail-title">SAGA</span><nav aria-label="Saga navigation">{sagas.map((s) => { const Icon = sagaIcons[s.id] || Compass; const active = activeSaga === s.id && route.view === 'journey'; return <button key={s.id} className={active ? 'active' : ''} onClick={() => jumpSaga(s.id)} title={s.name} aria-current={active ? 'location' : undefined}>{active ? <m.i layoutId="rail-ink" className="rail-ink" transition={{ type: 'spring', stiffness: 380, damping: 34 }} /> : null}<Icon size={22} className="rail-icon" /><span>{s.name.replace(' Saga', '')}</span></button>; })}</nav><div className="rail-footer"><span className="rail-dash" aria-hidden="true" /><Anchor size={27} /><span>GRAND LINE<br />AWAITS…</span></div></aside>
     <main id="main" className={`main-shell view-${route.view}`}>
-      <ReadingControls through={through} view={route.view} onChange={setHorizon} onNavigate={navigate} />
+      {route.view === 'trails' || route.view === 'mysteries' ? <DiscoveryNavigation view={route.view} onNavigate={navigate} /> : null}
       <AnimatePresence key={through ?? "all"} mode="wait" initial={false}>
         <m.div key={`${route.view}-${through ?? 'all'}`} initial={motion ? { opacity: 0, y: 18 } : false} animate={{ opacity: 1, y: 0 }} exit={motion ? { opacity: 0, y: -10, transition: { duration: 0.16 } } : undefined} transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}>
           {route.view === 'journey' ? <>
@@ -224,7 +226,7 @@ export default function App() {
       <div className="voyage-position"><Ship size={19} /><span>{shipName}<small>{activeSagaRecord?.name || activeSaga}</small></span></div>
       <button className="world-pill" onClick={() => navigate('world')}>Explore the full world <span className="pill-icon"><Globe2 size={16} /></span></button>
     </aside> : null}
-    <nav className="bottom-nav" aria-label="Mobile navigation">{[{ id: 'journey' as const, label: 'Journey', Icon: Compass }, { id: 'search' as const, label: 'Search', Icon: Search }, { id: 'world' as const, label: 'World', Icon: Map }, { id: 'saved' as const, label: 'Saved', Icon: Bookmark }].map(({ id, label, Icon }) => <button key={id} className={route.view === id ? 'active' : ''} aria-current={route.view === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={20} /><span>{label}</span></button>)}</nav>
+    <nav className="bottom-nav" aria-label="Mobile navigation">{[{ id: 'journey' as const, label: 'Journey', Icon: Compass }, { id: 'search' as const, label: 'Search', Icon: Search }, { id: 'world' as const, label: 'World', Icon: Map }, { id: 'trails' as const, label: 'Discover', Icon: Sparkles }, { id: 'saved' as const, label: 'Saved', Icon: Bookmark }].map(({ id, label, Icon }) => <button key={id} className={activeView === id ? 'active' : ''} aria-current={activeView === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={20} /><span>{label}</span></button>)}</nav>
     <div className={`toast ${toast ? 'visible' : ''}`} role="status">{toast ? <Check size={16} /> : null}{toast}</div>
     <PixelBurst burst={burst} />
     {!storageAvailable ? <div className="storage-note" role="status">Saves are available for this session. Device storage is unavailable.</div> : null}

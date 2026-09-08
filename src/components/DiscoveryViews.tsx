@@ -6,6 +6,7 @@ import { useReaderCatalog } from '../data/reader-catalog';
 import { buildCharacterJourney } from '../data/character-journeys';
 import { buildMysteries, type Mystery } from '../data/mysteries';
 import CharacterPortrait from './CharacterPortrait';
+import { focusReadingProgress } from './ReadingControls';
 import '../discovery.css';
 
 interface DiscoveryViewsProps {
@@ -44,10 +45,10 @@ function TrailsView({ onOpen }: Pick<DiscoveryViewsProps, 'onOpen'>) {
           <CharacterPortrait characterId={character.id} name={character.name} color={character.color} />
           <span><small>{character.role || 'Character'}</small><strong>{character.name}</strong></span><ArrowRight size={20} aria-hidden="true" />
         </button>
-        <div className="trail-card-route" aria-label={`${entries.length} trail entries`}><i />{entries.slice(0, 5).map((entry) => <button key={entry.id} type="button" title={`${entry.arcName}: ${entry.title}`} aria-label={`Open ${entry.title} in ${entry.arcName}`} onClick={() => onOpen('arc', entry.arcId, entry.targetId)} />)}</div>
+        {entries.length ? <ol className="trail-card-route" aria-label="First story entries">{entries.slice(0, 2).map((entry) => <li key={entry.id}><button type="button" aria-label={`Open ${entry.title} in ${entry.arcName}`} onClick={() => onOpen('arc', entry.arcId, entry.targetId)}><span className="trail-preview-mark" aria-hidden="true" /><span><small>{entry.arcName} · Ch. {entry.chapters}</small><strong>{entry.title}</strong></span><ArrowRight size={16} aria-hidden="true" /></button></li>)}</ol> : null}
         <footer><span>{entries.length} story {entries.length === 1 ? 'entry' : 'entries'}</span>{entries.length ? <button className="text-link" type="button" onClick={() => onOpen('character', character.id)}>Read the full trail <ArrowRight size={15} /></button> : <small>No story entries recorded yet.</small>}</footer>
       </article>)}
-    </div> : <DiscoveryEmpty icon={<Search size={38} />} title="No trail matches those coordinates." body={characters.length ? 'Try a shorter name or search for an arc.' : 'Complete an arc in your reading progress to reveal character trails.'} action={query ? () => setQuery('') : undefined} actionLabel="Clear search" />}
+    </div> : <DiscoveryEmpty icon={<Search size={38} />} title={characters.length ? 'No matching character journeys.' : 'Choose where you are in the story.'} body={characters.length ? 'Try a shorter name or search for an arc.' : 'Set your last completed arc to reveal its character journeys.'} action={query ? () => { setQuery(''); inputRef.current?.focus(); } : focusReadingProgress} actionLabel={query ? 'Clear search' : 'Set reading progress'} />}
   </section>;
 }
 
@@ -71,7 +72,7 @@ function MysteriesView({ onOpen }: Pick<DiscoveryViewsProps, 'onOpen'>) {
   return <section className="discovery-view mysteries-view" aria-labelledby="mysteries-title">
     <header className="discovery-hero mystery-hero"><div><span className="micro">MYSTERY BOARD · STORY CLUES ONLY</span><h1 id="mysteries-title">Questions leave<br /><i>a wake.</i></h1><p>Open a thread, inspect each story moment, and watch the answer change as your reading progress reveals new clues.</p></div><CircleHelp className="discovery-hero-mark" size={112} strokeWidth={1.25} aria-hidden="true" /></header>
     <div className="mystery-filters" aria-label="Filter mysteries">{(['all', 'open', 'resolved'] as const).map((value) => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>{value}<small>{value === 'all' ? mysteries.length : mysteries.filter((item) => item.status === value).length}</small></button>)}</div>
-    {visible.length ? <div className="mystery-board">{visible.map((mystery) => <MysteryCard key={mystery.id} mystery={mystery} onOpen={onOpen} />)}</div> : <DiscoveryEmpty icon={<Sparkles size={38} />} title={mysteries.length ? `No ${filter} questions at this reading point.` : 'The board is still below deck.'} body={mysteries.length ? 'Choose another status to inspect the available threads.' : 'Advance your reading progress to uncover the first clues.'} action={mysteries.length ? () => setFilter('all') : undefined} actionLabel="Show all mysteries" />}
+    {visible.length ? <div className="mystery-board">{visible.map((mystery) => <MysteryCard key={mystery.id} mystery={mystery} onOpen={onOpen} />)}</div> : <DiscoveryEmpty icon={<Sparkles size={38} />} title={mysteries.length ? `No ${filter} questions at this reading point.` : 'No mysteries at this reading point yet.'} body={mysteries.length ? 'Choose another status to inspect the available threads.' : 'Return as you finish more arcs. You can update your reading progress above.'} action={mysteries.length ? () => setFilter('all') : focusReadingProgress} actionLabel={mysteries.length ? 'Show all mysteries' : 'Set reading progress'} />}
   </section>;
 }
 

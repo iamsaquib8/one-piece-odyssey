@@ -6,6 +6,8 @@ Where the project stands, what is verified, and what to pick up next. Read this 
 
 The local app includes character journeys, reading-progress controls, and a mystery board. These additions have not been deployed. It is called **One Piece Odyssey** (renamed from Grand Line Odyssey on 6 September; the localStorage key stayed `grand-line-logbook-v1` so nobody's saved logbook is lost, and the privacy notice names that key literally). The repository is prepared for a public GitHub push: README, LICENSE, CONTRIBUTING, CI workflow and a cleaned `.gitignore` are in place.
 
+PR #5 (`reader-discovery`) now incorporates main's island-to-arc navigation and battle motion comics. The merge retains limited-mode portrait silhouettes before rendering any full-mode artwork. The UX follow-up moves reading settings into a compact header disclosure, adds Discover to primary/mobile navigation, shortens discovery mastheads, labels story previews, and opens character trails at their filterable timeline. The journey page no longer has a settings strip above its artwork.
+
 Coverage runs from chapter 1 to **1191**, the latest released chapter as of 6 September 2026. Elbaf is marked `ongoing`.
 
 Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**, repository at **[github.com/iamsaquib8/one-piece-odyssey](https://github.com/iamsaquib8/one-piece-odyssey)**.
@@ -20,7 +22,7 @@ To pull in newly released chapters, use the `chapter-refresh` skill in `.claude/
 | `npm run typecheck` | clean |
 | `npm test` | 10 files, 44 tests passed |
 | `npm run build` | TypeScript and production build pass; globe and shared content chunk-size warnings, see follow-ups |
-| `npm run test:e2e` | 56 existing regression tests passed in the full run; all 12 discovery tests passed in the final focused rerun after correcting selectors. Desktop Chrome, Pixel 7 and axe included. |
+| `npm run test:e2e` | Full run: 71/72 passed, with one mobile test needing to close the new settings panel before using the map. Final corrected run: all 28 discovery and mobile atlas checks pass, including 16 discovery checks, keyboard/focus, axe and 320px layout. |
 
 Playwright runs against the built output through the preview server, so **rebuild before running end-to-end tests** or you will test a stale `dist`.
 

@@ -37,13 +37,15 @@ export default function DetailOverlay({route,reader,motion,onClose,onOpen,onSave
   useEffect(()=>{
     const el=node;
     if(!el)return;
-    setSection(route.beat?'story':'overview');
-    requestAnimationFrame(()=>{
+    const startAtJourney=route.view==='trails'&&route.kind==='character';
+    setSection(route.beat?'story':startAtJourney?'journey':'overview');
+    const frame=requestAnimationFrame(()=>{
       const beat=route.beat?(document.getElementById(`beat-${route.beat}`)||document.getElementById(`battle-${route.beat}`)):null;
-      if(beat){el.scrollTop=beat.getBoundingClientRect().top-el.getBoundingClientRect().top+el.scrollTop-24;}else el.scrollTop=positions.current.get(key)||0;
+      const target=beat||(startAtJourney&&!positions.current.has(key)?document.getElementById('detail-journey'):null);
+      if(target){el.scrollTop=target.getBoundingClientRect().top-el.getBoundingClientRect().top+el.scrollTop-24;}else el.scrollTop=positions.current.get(key)||0;
     });
-    return ()=>{positions.current.set(key,el.scrollTop);};
-  },[key,route.beat,node]);
+    return ()=>{cancelAnimationFrame(frame);positions.current.set(key,el.scrollTop);};
+  },[key,route.beat,route.view,route.kind,node]);
   useEffect(()=>{
     const el=node;
     if(!el)return;
