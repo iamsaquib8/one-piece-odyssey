@@ -1,14 +1,14 @@
+import { stagingAtProgress } from '../../data/spoiler-overrides';
 import { useMemo, type CSSProperties, type RefObject } from 'react';
 import { ArrowRight, Check, ExternalLink, MapPin } from 'lucide-react';
 import { motion as m } from 'motion/react';
 import type { Arc, ReaderState, Route } from '../../types';
-import { arcs } from '../../data/arcs';
+import { useReaderCatalog } from '../../data/reader-catalog';
+import { useReadingHorizon } from '../../reading-horizon';
 import { sagas } from '../../data/sagas';
-import { locations } from '../../data/locations';
-import { characters } from '../../data/characters';
-import { crews } from '../../data/crews';
+import { characters as strawHats } from '../../data/characters';
 import { coverage } from '../../data/coverage';
-import { stagingFor, type CastMember } from '../../data/staging';
+import { type CastMember } from '../../data/staging';
 import { bountyChanges, crewAboard, formatBerries } from '../../data/crew-roster';
 import CharacterPortrait from '../CharacterPortrait';
 import { ArcHero } from './ArcHero';
@@ -33,13 +33,16 @@ interface Props {
 
 /** The whole arc experience: title card, crew and cast, illustrated voyage, versus battles, legacy, neighbouring stops. */
 export function ArcDetail({ arc, route, reader, motion, scroller, onOpen, onExplore, onBeat, onActiveBeat }: Props) {
-  const staging = stagingFor(arc.id);
+  const { arcs, locations, characters: catalogCharacters, crews } = useReaderCatalog();
+  const through = useReadingHorizon();
+  const characters = useMemo(() => catalogCharacters.filter(c => strawHats.some(s => s.id === c.id)), [catalogCharacters]);
+  const staging = stagingAtProgress(arc.id, through);
   const saga = sagas.find((s) => s.id === arc.sagaId);
   const index = arcs.findIndex((a) => a.id === arc.id);
-  const roster = useMemo(() => crewAboard(arc, arcs, characters), [arc]);
-  const bounties = useMemo(() => bountyChanges(arc, characters), [arc]);
+  const roster = useMemo(() => crewAboard(arc, arcs, strawHats).map(r => ({...r, character: characters.find(c => c.id === r.character.id) || {...r.character, epithet: ''}})), [arc, arcs, characters]);
+  const bounties = useMemo(() => bountyChanges(arc, characters), [arc, characters]);
   /** Straw Hats inherit colour and epithet from their profiles so writers never repeat them. */
-  const members = useMemo<CastMember[]>(() => (staging?.cast || []).map((c) => { const ch = characters.find((x) => x.id === c.id); return ch ? { ...c, color: c.color || ch.color, epithet: c.epithet || ch.epithet } : c; }), [staging]);
+  const members = useMemo<CastMember[]>(() => (staging?.cast || []).map((c) => { const ch = characters.find((x) => x.id === c.id); return ch ? { ...c, color: c.color || ch.color, epithet: through === null ? c.epithet || ch.epithet : undefined } : c; }), [staging, characters, through]);
   const cast = useMemo(() => new Map<string, CastMember>(members.map((c) => [c.id, c])), [members]);
   const explored = reader.explored.includes(arc.id);
   const ease = [0.22, 1, 0.36, 1] as const;
@@ -74,6 +77,7 @@ export function ArcDetail({ arc, route, reader, motion, scroller, onOpen, onExpl
     <section id="detail-legacy" className="arc-section arc-legacy">
       <header className="arc-section-head"><span className="micro">WHAT SAILS ON</span><h2>Legacy</h2></header>
       <div className="reading-copy">
+        {through !== null ? <p>Full retrospective commentary is hidden at this reading progress.</p> : null}
         {arc.legacy.map((p, i) => <p key={i}>{p}</p>)}
         {bounties.length ? <div className="bounty-stamps">
           <span className="micro">BOUNTIES POSTED IN THIS ARC</span>

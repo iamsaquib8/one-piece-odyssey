@@ -21,7 +21,7 @@ export function BattleCard({ battle, staging, cast, motion, locationId }: Props)
   const a = side(staging?.a);
   const b = side(staging?.b);
   const verdict = staging?.verdict ? VERDICT[staging.verdict] : undefined;
-  return <m.section className="battle-card" aria-label={battle.title} initial={motion ? { opacity: 0, y: 26 } : false} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.55, ease }}>
+  return <m.section id={`battle-${battle.id}`} className="battle-card" aria-label={battle.title} initial={motion ? { opacity: 0, y: 26 } : false} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.55, ease }}>
     {a.length || b.length ? <div className={`versus ${verdict ? `verdict-${verdict.tone}` : ''}`}>
       <Side members={a} align="left" motion={motion} />
       <div className="versus-middle">

@@ -6,7 +6,7 @@ An illustrated, animated fan explorer for the **One Piece** manga. Every arc fro
 
 Everything you see is drawn in code. There are no manga panels, scans or translations anywhere in this repository.
 
-> **Spoiler warning:** the whole site is full manga spoilers, with no gating.
+> **Reading progress:** full manga spoilers are shown by default. Use “I’ve read through” to limit discovery to completed arcs. The setting stays in your browser; shared links cannot raise it.
 
 ![The journey page](docs/screenshots/journey.webp)
 
@@ -17,6 +17,9 @@ Everything you see is drawn in code. There are no manga panels, scans or transla
 - **Beat dioramas.** Every story beat is staged: its own location, a per-beat camera, a mood (dawn, day, dusk, night, storm, flashback) and the characters present standing in the frame. Flashbacks get sepia, grain and film sprockets.
 - **World atlas.** A schematic chart of the world with a globe mode, layers, a voyage player and searchable field notes.
 - **Crew and factions.** Wanted posters for the Straw Hats and a registry of the crews around them.
+- **Character journeys.** Search character trails and follow chronological story moments, battles and bounty changes directly into the reader.
+- **Mystery board.** Follow four source-linked questions; clues and resolutions unlock with your reading progress.
+- **Spoiler controls.** Limit journey stops, search, profiles, crew records, both atlas modes and discovery views. Limited mode hides portraits and biographies that lack reliable reveal boundaries. Hidden saves remain in your logbook.
 - **Your logbook.** Save arcs and places, mark arcs explored, resume where you stopped. It lives in your own browser and never leaves your device.
 - **Motion you control.** Rich animation with the toggle on, and nothing but layout when it is off or when the system asks for reduced motion.
 

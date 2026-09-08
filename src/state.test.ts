@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { decodeReader, readReader, saveReader, decodeRoute, encodeRoute, toggleItem } from './state';
 describe('device-local logbook', () => {
+  it('preserves old saves and defaults existing readers to the full edition', () => {
+    const reader = decodeReader('{"version":1,"saved":["arc:wano"],"explored":["romance-dawn"]}');
+    expect(reader.saved).toEqual(['arc:wano']);
+    expect(reader.explored).toEqual(['romance-dawn']);
+    expect(reader.spoilerThrough).toBe(null);
+  });
+  it('persists a reading horizon and fails closed for malformed values', () => {
+    expect(decodeReader('{"version":1,"spoilerThrough":7}').spoilerThrough).toBe(7);
+    for (const value of [-1, 'all', {}, 7.5]) {
+      expect(decodeReader(JSON.stringify({version: 1, spoilerThrough: value})).spoilerThrough).toBe(0);
+    }
+  });
   it('recovers from corrupt, unavailable and malformed storage', () => {
     expect(decodeReader('{bad').saved).toEqual([]);
     expect(decodeReader('{"version":1,"saved":[1,"arc:alabasta"],"resume":{"y":-12}}').resume.y).toBe(0);
@@ -13,6 +25,10 @@ describe('device-local logbook', () => {
   });
 });
 describe('shareable navigation', () => {
+  it('round trips discovery views without accepting a shared spoiler override', () => {
+    expect(decodeRoute('?view=trails&spoilerThrough=1191')).toEqual({view: 'trails'});
+    expect(decodeRoute(encodeRoute({view: 'mysteries'}))).toEqual({view: 'mysteries'});
+  });
   it('round-trips crew profiles and preserves the originating view',()=>{
     const route={view:'crew' as const,kind:'crew' as const,id:'red-hair'};
     expect(decodeRoute(encodeRoute(route))).toEqual(route);

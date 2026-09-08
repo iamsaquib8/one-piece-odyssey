@@ -2,15 +2,20 @@ import {useEffect,useRef,useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {Compass} from 'lucide-react';
-import {connections} from '../data/connections';
-import {globePlaceById,globePlaces,regionViews,spherePoint,type GeoPoint} from './globe-model';
+import type {Connection} from '../types';
+import {globePlaceById as editionGlobePlaceById,regionViews,spherePoint,type GeoPoint} from './globe-model';
 import {createLandmark,planetTexture} from './globe-art';
 import {layoutMapLabels,mapLabelBudget,type LabelCandidate} from './map-labels';
 import type {AtlasPlace} from './atlas-model';
 
-interface Props{rotating:boolean;onRegionChange:(region:string)=>void;selected:string;onSelect:(place:AtlasPlace)=>void;onZoom:(zoom:number)=>void;zoom:number;region:string;focusToken:number;resetToken:number;motion:boolean;layers:{voyage:boolean;geography:boolean;story:boolean;labels:boolean};onFallback:()=>void}
+interface Props{places:AtlasPlace[];connections:Connection[];fullEdition:boolean;rotating:boolean;onRegionChange:(region:string)=>void;selected:string;onSelect:(place:AtlasPlace)=>void;onZoom:(zoom:number)=>void;zoom:number;region:string;focusToken:number;resetToken:number;motion:boolean;layers:{voyage:boolean;geography:boolean;story:boolean;labels:boolean};onFallback:()=>void}
 interface Engine{focus:(p:GeoPoint)=>void;zoom:(zoom:number)=>void;invalidate:()=>void;setMotion:(motion:boolean)=>void;setLayers:(layers:Props['layers'])=>void;select:(id:string)=>void;rotate:(value:boolean)=>void}
 export default function GlobeView(props:Props){
+  const globePlaces=props.places.flatMap(place=>{
+    const point=editionGlobePlaceById.get(place.id);
+    return point?[{...point,...place,lat:point.lat,lon:point.lon}]:[];
+  });
+  const globePlaceById=new Map(globePlaces.map(place=>[place.id,place]));
   const host=useRef<HTMLDivElement>(null),engine=useRef<Engine|null>(null),labelRefs=useRef(new Map<string,HTMLButtonElement>());
   const current=useRef(props);current.current=props;
   const [failed,setFailed]=useState(false),[ready,setReady]=useState(false);
@@ -48,7 +53,7 @@ export default function GlobeView(props:Props){
     const selectedRing=new THREE.Mesh(new THREE.TorusGeometry(.135,.006,5,48),new THREE.MeshBasicMaterial({color:'#ffe598',transparent:true,opacity:.9}));selectedRing.rotation.x=Math.PI/2;scene.add(selectedRing);
     const routeGroups={voyage:new THREE.Group(),story:new THREE.Group(),geography:new THREE.Group()};
     Object.values(routeGroups).forEach(g=>scene.add(g));
-    const routeData=[...connections.filter(c=>c.kind!=='geographic'),{from:'sabaody-archipelago',to:'fish-man-island',kind:'geographic' as const,label:'Underwater passage'},{from:'mary-geoise',to:'fish-man-island',kind:'geographic' as const,label:'Above and below the Red Line'}];
+    const routeData=[...props.connections.filter(c=>c.kind!=='geographic'),...(props.fullEdition?[{from:'sabaody-archipelago',to:'fish-man-island',kind:'geographic' as const,label:'Underwater passage'},{from:'mary-geoise',to:'fish-man-island',kind:'geographic' as const,label:'Above and below the Red Line'}]:[])].filter(c=>globePlaceById.has(c.from)&&globePlaceById.has(c.to));
     routeData.forEach(c=>{
       const a=globePlaceById.get(c.from),b=globePlaceById.get(c.to);if(!a||!b)return;
       const v1=new THREE.Vector3(...spherePoint(a,1)),v2=new THREE.Vector3(...spherePoint(b,1));

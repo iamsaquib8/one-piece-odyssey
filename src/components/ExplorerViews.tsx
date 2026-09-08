@@ -1,9 +1,9 @@
+import { useReaderCatalog } from '../data/reader-catalog';
+import { useReadingHorizon } from '../reading-horizon';
+import DiscoveryViews from './DiscoveryViews';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
-import { arcSummaries as arcs, sagas, chapterLabel } from '../data/arc-index';
-import { locations } from '../data/locations';
-import { allCharacters as characters } from '../data/all-characters';
-import { crews } from '../data/crews';
+import { sagas as allSagas, chapterLabel } from '../data/arc-index';
 import CrewView from './CrewView';
 import WorldAtlas from './WorldAtlas';
 import { contactAddress, legalSections, legalUpdated } from '../data/legal';
@@ -17,6 +17,8 @@ const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, 
 
 export default function ExplorerViews(props: Props) {
   switch (props.view) {
+    case 'trails':
+    case 'mysteries': return <DiscoveryViews view={props.view} onOpen={props.onOpen} />;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;
@@ -35,6 +37,9 @@ function highlight(text: string, q: string) {
   return <>{text.slice(0, i)}<mark>{text.slice(i, i + q.length)}</mark>{text.slice(i + q.length)}</>;
 }
 function SearchView({ route, onOpen, onJumpSaga }: Props) {
+  const through = useReadingHorizon();
+  const { arcs, locations, characters, crews } = useReaderCatalog();
+  const sagas = useMemo(() => allSagas.filter(s => arcs.some(a => a.sagaId === s.id)).map(s => through === null ? s : { ...s, subtitle: '' }), [arcs, through]);
   const [query, setQuery] = useState(route.q || '');
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => { input.current?.focus({ preventScroll: true }); }, []);
@@ -48,7 +53,7 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
     ...locations.map((l) => ({ kind: 'location' as const, id: l.id, title: l.name, subtitle: `${l.kind} · ${l.chapters}`, text: `${l.name} ${l.description} ${l.landmarks.join(' ')} ${l.region}` })),
     ...crews.map(c=>({kind:'crew' as const,id:c.id,title:c.name,subtitle:c.description,text:`${c.name} ${c.description} ${c.memberIds.map(id=>characters.find(p=>p.id===id)?.name||'').join(' ')}`})),
     ...characters.map((c) => ({ kind: 'character' as const, id: c.id, title: c.name, subtitle: `${c.epithet} · ${c.role}`, text: `${c.name} ${c.epithet} ${c.role} ${c.dream}` })),
-  ], []);
+  ], [arcs, locations, characters, crews, sagas]);
   const q = query.trim();
   const hits = useMemo(() => { const n = normalize(q); if (!n) return []; const words = n.split(/\s+/); return index.filter((h) => { const t = normalize(h.text); return words.every((w) => t.includes(w)); }).sort((a, b) => Number(normalize(b.title).includes(n)) - Number(normalize(a.title).includes(n))); }, [q, index]);
   const groups: Array<[Hit['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew', 'Crews & factions'], ['character', 'Characters'], ['saga', 'Sagas']];
@@ -56,8 +61,8 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
   function activate(h: Hit) { if (h.kind === 'saga') onJumpSaga(h.id); else onOpen(h.kind, h.id); }
   return <section className="explorer search-view" aria-labelledby="search-title">
     <div className="explorer-heading"><div><span className="micro">FIND YOUR NEXT ADVENTURE</span><h1 id="search-title">Search the seas</h1><p>Arcs, islands, sagas, pirate crews and characters. Results open in the logbook; the address bar keeps your search so you can share it.</p></div></div>
-    <form className="search-form" role="search" onSubmit={submit}><Search size={20} /><input ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search manga arcs, islands, characters…" aria-label="Search the explorer" autoComplete="off" enterKeyHint="search" />{query ? <button type="button" className="clear" aria-label="Clear search" onClick={() => { setQuery(''); input.current?.focus(); }}><X size={18} /></button> : null}</form>
-    {!q ? <div className="suggestions" aria-label="Suggested searches">{['Alabasta', 'Going Merry', 'Water Seven', 'Nico Robin', 'Skypiea', 'Wano', 'Sanji', 'Sabaody'].map((s) => <button key={s} className="chip" onClick={() => setQuery(s)}><Search size={14} />{s}</button>)}</div>
+    <form noValidate className="search-form" role="search" onSubmit={submit}><Search size={20} /><input ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search manga arcs, islands, characters…" aria-label="Search the explorer" autoComplete="off" enterKeyHint="search" />{query ? <button type="button" className="clear" aria-label="Clear search" onClick={() => { setQuery(''); input.current?.focus(); }}><X size={18} /></button> : null}</form>
+    {!q ? <div className="suggestions" aria-label="Suggested searches">{(through === null ? ['Alabasta', 'Going Merry', 'Water Seven', 'Nico Robin', 'Skypiea', 'Wano', 'Sanji', 'Sabaody'] : arcs.slice(0, 6).map(a => a.name)).map((s) => <button key={s} className="chip" onClick={() => setQuery(s)}><Search size={14} />{s}</button>)}</div>
       : hits.length === 0 ? <div className="empty-state"><Compass size={44} /><h2>Nothing on the chart for “{q}”.</h2><p>Try a shorter word, an island name, or a crew member. Character names use the manga’s English spellings.</p><button className="button" onClick={() => setQuery('')}>Clear the search</button></div>
       : <div className="result-groups" aria-live="polite">{groups.map(([kind, label]) => { const items = hits.filter((h) => h.kind === kind); if (!items.length) return null; return <div className="result-group" key={kind}><h2>{kind === 'arc' ? <BookOpen size={14} /> : kind === 'location' ? <MapPin size={14} /> : kind === 'character' ? <Users size={14} /> : <Compass size={14} />}{label} · {items.length}</h2><ul>{items.map((h) => <li key={h.id}><button className="result-row" onClick={() => activate(h)}><span className="kind">{kind}</span><span><strong>{highlight(h.title, q)}</strong><small>{highlight(h.subtitle, q)}</small></span><ArrowRight size={18} /></button></li>)}</ul></div>; })}</div>}
   </section>;
@@ -65,14 +70,18 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
 
 /* ------------------------------------------------------------------ Saved */
 function SavedView({ reader, onOpen, onNavigate }: Props) {
+  const { arcs, locations, characters, crews } = useReaderCatalog();
+  const sagas = allSagas;
+  const through = useReadingHorizon();
   const saved = reader.saved.map((key) => { const [kind, id] = key.split(':') as [Route['kind'], string]; const rec = kind === 'arc' ? arcs.find((a) => a.id === id) : kind === 'location' ? locations.find((l) => l.id === id) : kind === 'crew' ? crews.find(c=>c.id===id) : characters.find((c) => c.id === id); return rec && kind ? { kind, id, name: rec.name, sub: kind === 'arc' ? chapterLabel(rec as (typeof arcs)[number]) : kind === 'location' ? (rec as Location).chapters : kind==='crew' ? (rec as (typeof crews)[number]).description : (rec as (typeof characters)[number]).epithet } : null; }).filter((x): x is NonNullable<typeof x> => !!x);
   const explored = arcs.filter((a) => reader.explored.includes(a.id));
-  const pct = Math.round((explored.length / arcs.length) * 100);
+  const pct = arcs.length ? Math.round((explored.length / arcs.length) * 100) : 0;
   const groups: Array<[Route['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew','Crews & factions'], ['character', 'Characters']];
   return <section className="explorer saved-view" aria-labelledby="saved-title">
     <div className="explorer-heading"><div><span className="micro">YOUR LOGBOOK · SAVED ON THIS DEVICE</span><h1 id="saved-title">Your logbook</h1><p>Saved destinations and explored arcs. Nothing leaves this browser; clearing site data starts a fresh voyage.</p></div></div>
     <div className="progress-card"><Check size={36} /><div><strong>{explored.length} of {arcs.length} arcs explored · {pct}%</strong><small>Mark an arc explored from the end of its story. Colours follow the saga.</small><div className="progress-bar" aria-hidden="true">{sagas.map((s) => { const n = explored.filter((a) => a.sagaId === s.id).length; return n ? <span key={s.id} style={{ width: `${(n / arcs.length) * 100}%`, '--saga-color': s.color } as React.CSSProperties} /> : null; })}</div></div></div>
-    {saved.length === 0 ? <div className="empty-state"><Bookmark size={44} /><h2>Your logbook is empty.</h2><p>Use the bookmark on any arc, island or crew member to keep it here for later.</p><button className="button primary" onClick={() => onNavigate('journey')}>Back to the voyage <ArrowRight size={18} /></button></div>
+    {through !== null ? <p className="reading-saved-note">Showing saves within your reading progress. Later saves are kept and will reappear when you advance.</p> : null}
+    {saved.length === 0 ? <div className="empty-state"><Bookmark size={44} /><h2>{reader.saved.length ? 'No saves within your reading progress.' : 'Your logbook is empty.'}</h2><p>Use the bookmark on any arc, island or crew member to keep it here for later.</p><button className="button primary" onClick={() => onNavigate('journey')}>Back to the voyage <ArrowRight size={18} /></button></div>
       : <div className="saved-groups">{groups.map(([kind, label]) => { const items = saved.filter((s) => s.kind === kind); if (!items.length) return null; return <div className="result-group" key={kind}><h2>{label} · {items.length}</h2><ul>{items.map((s) => <li key={s.id}><button className="result-row" onClick={() => onOpen(s.kind!, s.id)}><span className="kind">{s.kind}</span><span><strong>{s.name}</strong><small>{s.sub}</small></span><ArrowRight size={18} /></button></li>)}</ul></div>; })}</div>}
   </section>;
 }

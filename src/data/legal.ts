@@ -31,7 +31,7 @@ export const legalSections: LegalSection[] = [
     paragraphs: [
       'Every summary, description, and art brief is an original editorial interpretation. It is not a substitute for the manga, and it is not an authoritative account of it. Where this edition describes what a place looks like or how an event unfolded, that reading may be wrong, incomplete, or later contradicted by the story itself.',
       'Arc and saga divisions are this project’s navigation, not an official publisher taxonomy. Chapter ranges are reading references rather than panel-level citations. Location positions on the world map are schematic story topology — the order in which places are reached — and never canonical coordinates.',
-      'This edition covers the story only through the chapter noted in the footer, while the manga continues past it. The site carries full spoilers for everything it covers, with no spoiler gating anywhere.',
+      'This edition covers the story only through the chapter noted in the footer, while the manga continues past it. Full-story mode carries spoilers for everything it covers. The reading-progress control limits discovery to completed arcs; undated profile summaries are hidden in limited mode.',
     ],
   },
   {

@@ -1,10 +1,12 @@
-# Project state — 6 September 2026
+# Project state — 8 September 2026
 
 Where the project stands, what is verified, and what to pick up next. Read this first when returning to the work.
 
 ## Snapshot
 
-The app is complete and green. It is now called **One Piece Odyssey** (renamed from Grand Line Odyssey on 6 September; the localStorage key stayed `grand-line-logbook-v1` so nobody's saved logbook is lost, and the privacy notice names that key literally). The repository is prepared for a public GitHub push: README, LICENSE, CONTRIBUTING, CI workflow and a cleaned `.gitignore` are in place.
+The local app includes character journeys, reading-progress controls, and a mystery board. These additions have not been deployed. It is called **One Piece Odyssey** (renamed from Grand Line Odyssey on 6 September; the localStorage key stayed `grand-line-logbook-v1` so nobody's saved logbook is lost, and the privacy notice names that key literally). The repository is prepared for a public GitHub push: README, LICENSE, CONTRIBUTING, CI workflow and a cleaned `.gitignore` are in place.
+
+PR #5 (`reader-discovery`) now incorporates main's island-to-arc navigation and battle motion comics. The merge retains limited-mode portrait silhouettes before rendering any full-mode artwork. The UX follow-up moves reading settings into a compact header disclosure, adds Discover to primary/mobile navigation, shortens discovery mastheads, labels story previews, and opens character trails at their filterable timeline. The journey page no longer has a settings strip above its artwork.
 
 Coverage runs from chapter 1 to **1191**, the latest released chapter as of 6 September 2026. Elbaf is marked `ongoing`.
 
@@ -12,15 +14,15 @@ Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)
 
 To pull in newly released chapters, use the `chapter-refresh` skill in `.claude/skills/` — it owns the whole procedure, and `npm run refresh:audit` reports what is stale.
 
-## Verification, last run 6 September
+## Verification, last run 8 September
 
 | Command | Result |
 |---|---|
 | `npm run validate` | ✓ 33 arcs · 234 beats · 93 battles · 70 locations · 113 character profiles · 46 crews/factions · 42 connections · 483 cast entries · coverage Ch. 1–1191 |
 | `npm run typecheck` | clean |
-| `npm test` | 5 files, 22 tests passed |
-| `npm run build` | built clean; lazy globe and reader chunk-size warnings, see follow-ups |
-| `npm run test:e2e` | 36 passed, desktop Chrome and Pixel 7, axe included; 320/390/768px and landscape layout checks |
+| `npm test` | 10 files, 44 tests passed |
+| `npm run build` | TypeScript and production build pass; globe and shared content chunk-size warnings, see follow-ups |
+| `npm run test:e2e` | Full run: 71/72 passed, with one mobile test needing to close the new settings panel before using the map. Final corrected run: all 28 discovery and mobile atlas checks pass, including 16 discovery checks, keyboard/focus, axe and 320px layout. |
 
 Playwright runs against the built output through the preview server, so **rebuild before running end-to-end tests** or you will test a stale `dist`.
 
@@ -45,6 +47,16 @@ The design record for this work is `docs/superpowers/specs/2026-09-06-arc-detail
 - Edition facts were pulled out of the code that repeated them: the crew page's chapter horizon, the journey page's chapter ticks, and both Playwright suites now read `coverage.ts` instead of a literal, and the saga/arc count assertions derive from the data.
 - Battles stopped being captions on a gradient. `FightStage` plays each battle as a scene on the arc's island: the acting side lunges, the other reels, an impact star and a comic sound word land on the beat, speed lines rake out, and a momentum marker swings to the verdict. The choreography is derived — which side a caption names, falling back to alternating, with the winner landing the last blow — so all 93 battles animate without any per-fight authoring.
 - Fixed what the audit and a dry run surfaced: two UI claims that Elbaf coverage "stops at the arrival" (untrue since the arc reached 1191), six crew chapter ranges still frozen at the previous cutoff, and the four Elbaf sub-locations missing an atlas parent, which had them scattering instead of clustering on the island.
+
+## Reader discovery update
+
+The shared “I’ve read through” control persists a completed-arc limit in the existing version-1 logbook. Old saves default to full coverage, and direct URLs never raise the limit. Journey stops, search, saved lists, crew discovery, both atlas projections and direct record links respect it. Hidden saved entries remain stored. Limited profiles use staged identities, hide current portraits and undated biographies/affiliations, and bound bounties by their explicit chapter. Retrospective identity reveals have an explicit override module. Authored summaries remain editorial drafts; the controls are arc-based rather than a chapter-by-chapter content audit.
+
+Character journeys derive chronological moments, battles and bounty changes with exact reader links and explicit identity aliases. The searchable directory is at `?view=trails`. Four curated mystery threads at `?view=mysteries` unlock clues and resolutions by progress, with links to their supporting story beats. Existing history and single-dialog focus restoration apply.
+
+Desktop and mobile screenshots were inspected interactively; runtime logs were clear. The strict premium UI audit reports zero findings. Native select ownership is documented in `premium-ui.json` and `UX-CONTRACT.md`. Sandbox verification used the equivalent Node loader for the content scripts and direct Vitest/TypeScript/Vite executables, avoiding the tsx CLI IPC restriction.
+
+Further feature ideas—history timeline, quizzes, notes and recaps—remain outside this implementation. Plan and spec are in `docs/superpowers/`.
 
 ## Content inventory
 
@@ -85,7 +97,7 @@ Each has a matching `staging-*.ts`. `staging.ts` merges them and `crew-roster.ts
 
 **Reader.** Cast galleries on the largest arcs run long: Wano 22, Egghead 22, Elbaf 26, Marineford 17. Trim the non-crew entries if the section feels heavy.
 
-**Bundle.** Two chunks exceed the 400 kB warning limit: `DetailOverlay` at about 546 kB and `GlobeView` at about 543 kB (Three.js). Neither loads on the initial journey page. The globe is about 139 kB gzip; the detailed reader is about 186 kB gzip. The main chunk is about 291 kB, 90 kB gzipped.
+**Bundle.** Two chunks exceed the 400 kB warning limit: shared content/crews at about 672 kB (232 kB gzip) and `GlobeView` at about 543 kB (140 kB gzip). The main chunk is about 294 kB (92 kB gzip). Discovery and detail views share the larger content chunk; further content splitting remains a performance follow-up.
 
 **Globe and fleet update.** The world atlas now defaults to a rotatable Three.js globe with 3D landmarks, globe routes, region flights, responsive label density, and a flat-chart fallback. Crew discovery now includes 42 pirate crews, four factions, and 113 character profiles with original animated SVG portraits. Crew and character records share the existing overlay/history and logbook. The registry has a separate content horizon (`crewCoverageThrough`); its concise supporting profiles are not the same editorial coverage as the full arc reader. Maintenance instructions are in `docs/ATLAS-MAINTENANCE.md`.
 

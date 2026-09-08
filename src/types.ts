@@ -9,7 +9,7 @@ export interface Location { id: string; name: string; region: RegionId; kind: 'i
 export interface Character { id: string; name: string; epithet: string; role: string; dream: string; recruitment: string; arcId: string; description: string; milestones: string[]; bounties: { amount: string; after: string }[]; color: string }
 export interface Connection { from: string; to: string; kind: 'geographic' | 'voyage' | 'narrative'; label: string }
 export interface Coverage { verifiedDate: string; latestOfficialChapter: number; coveredThrough: number; source: string; note: string }
-export type View = 'journey' | 'world' | 'search' | 'saved' | 'crew' | 'legal';
+export type View = 'journey' | 'world' | 'search' | 'saved' | 'crew' | 'legal' | 'trails' | 'mysteries';
 export interface LegalSection { id: string; title: string; summary: string; paragraphs: string[] }
 export interface Route { view: View; kind?: 'arc' | 'location' | 'character' | 'crew'; id?: string; beat?: string; q?: string }
-export interface ReaderState { version: 1; saved: string[]; explored: string[]; motion: boolean; resume: { y: number; arcId?: string; beat?: string }; }
+export interface ReaderState { version: 1; saved: string[]; explored: string[]; motion: boolean; spoilerThrough: number | null; resume: { y: number; arcId?: string; beat?: string }; }
