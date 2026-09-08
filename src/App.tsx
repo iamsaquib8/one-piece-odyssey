@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Anchor, ArrowDown, ArrowRight, Bookmark, BookmarkCheck, BookOpen, Building2, Cake, Check, ChevronDown, Cloud, Compass, Cpu, Crown, Fish, Flame, Ghost, Globe2, Map, MapPin, Mountain, Pause, Play, Search, Ship, Sparkles, Sun, Swords, TreePine, Users, Wind } from 'lucide-react';
 import { AnimatePresence, motion as m, useReducedMotion } from 'motion/react';
-import { arcSummaries as arcs, locationSummaries as locations, sagas, chapterLabel, type ArcSummary } from './data/arc-index';
+import { arcSummaries as allArcs, locationSummaries as locations, sagas as allSagas, chapterLabel, type ArcSummary } from './data/arc-index';
 import { coverage } from './data/coverage';
 import { legalSections, legalUpdated } from './data/legal';
 import { decodeReader, decodeRoute, encodeRoute, readReader, saveReader, toggleItem } from './state';
@@ -9,6 +9,10 @@ import type { ReaderState, Route, View } from './types';
 import { Scene } from './components/Scene';
 import { VoyageRoute } from './components/VoyageRoute';
 import { PixelBurst, useBurst } from './components/PixelBurst';
+import { ReadingHorizonProvider, isArcVisible } from './reading-horizon';
+import { ReadingControls } from './components/ReadingControls';
+const arcs = allArcs;
+const sagas = allSagas;
 const DetailOverlay = lazy(() => import('./components/DetailOverlay'));
 const ExplorerViews = lazy(() => import('./components/ExplorerViews'));
 
@@ -41,9 +45,12 @@ function useReveal(active: boolean) {
 export default function App() {
   const [route, setRoute] = useState<Route>(() => decodeRoute(window.location.search));
   const [reader, setReader] = useState<ReaderState>(initialReader);
+  const through = reader.spoilerThrough;
+  const arcs = useMemo(() => allArcs.filter(a => isArcVisible(a, through)), [through]);
+  const sagas = useMemo(() => allSagas.filter(s => arcs.some(a => a.sagaId === s.id)), [arcs]);
   const [toast, setToast] = useState('');
   const [storageAvailable, setStorageAvailable] = useState(true);
-  const [activeSaga, setActiveSaga] = useState(sagas[0]?.id || 'east-blue');
+  const [activeSaga, setActiveSaga] = useState(allSagas[0]?.id || 'east-blue');
   const [documentVisible, setDocumentVisible] = useState(!document.hidden);
   const [hasResume] = useState(() => initialReader().resume.y > 100 || !!initialReader().resume.arcId);
   const [hoverArc, setHoverArc] = useState<string | null>(null);
@@ -57,7 +64,7 @@ export default function App() {
   const openingDepth = useRef(0);
   const burst = useBurst();
   const activeArc = arcs.find((a) => a.sagaId === activeSaga);
-  const shipName = (activeArc?.chapters[0] || 0) >= 435 ? 'Thousand Sunny' : 'Going Merry';
+  const shipName = through !== null && through < 41 ? 'Your voyage' : (activeArc?.chapters[0] || 0) >= 435 ? 'Thousand Sunny' : 'Going Merry';
   const activeSagaRecord = sagas.find((s) => s.id === activeSaga);
   const progressChapter = activeArc?.chapters[0] || 1;
   useReveal(route.view === 'journey');
@@ -87,7 +94,7 @@ export default function App() {
     const observer = new IntersectionObserver((entries) => { for (const entry of entries) if (entry.isIntersecting) setActiveSaga(entry.target.id.replace('saga-', '')); }, { rootMargin: '-15% 0px -65% 0px' });
     document.querySelectorAll('[data-saga]').forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [route.view]);
+  }, [route.view, through]);
   useEffect(() => { document.body.classList.toggle('details-open', !!route.kind); return () => document.body.classList.remove('details-open'); }, [route.kind]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { const t = e.target as HTMLElement; if (e.key === '/' && !routeRef.current.kind && !['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) { e.preventDefault(); navigate('search'); } };
@@ -130,14 +137,20 @@ export default function App() {
     requestAnimationFrame(go);
   }
   function jumpArc(id: string) { document.getElementById(`arc-stop-${id}`)?.scrollIntoView({ behavior: motion ? 'smooth' : 'instant', block: 'center' }); }
-  function jumpChapter(chapter: number) { const arc = [...arcs].reverse().find((a) => a.chapters[0] <= chapter) || arcs[0]; jumpSaga(arc.sagaId); setTimeout(() => jumpArc(arc.id), 120); }
+  function jumpChapter(chapter: number) { const arc = [...arcs].reverse().find((a) => a.chapters[0] <= chapter) || arcs[0]; if (!arc) return; jumpSaga(arc.sagaId); setTimeout(() => jumpArc(arc.id), 120); }
   function save(id: string, at?: HTMLElement) { const adding = !reader.saved.includes(id); setReader((r) => ({ ...r, saved: toggleItem(r.saved, id) })); if (adding && at) burst.fire(at, 'gold'); announce(adding ? 'Saved to your logbook' : 'Removed from your logbook'); }
   function explore(id: string, at?: HTMLElement) { const adding = !reader.explored.includes(id); setReader((r) => ({ ...r, explored: toggleItem(r.explored, id) })); if (adding && at) burst.fire(at, 'coral'); announce(adding ? 'Arc marked explored' : 'Arc marked unexplored'); }
   function setBeat(id: string, beat: string) { setReader((r) => ({ ...r, resume: { ...r.resume, arcId: id, beat } })); history.replaceState(history.state, '', encodeRoute({ ...route, beat })); setRoute((r) => ({ ...r, beat })); announce('Reading position saved'); }
+  function setHorizon(value: number | null) {
+    setReader(r => ({ ...r, spoilerThrough: value }));
+    setActiveSaga(allSagas[0].id);
+    setHoverArc(null);
+    announce(value === null ? 'Full manga spoilers enabled' : `Reading progress set to chapter ${value}. Later details hidden.`);
+  }
   function resume() { if (reader.resume.arcId) open('arc', reader.resume.arcId, reader.resume.beat); else window.scrollTo({ top: reader.resume.y, behavior: motion ? 'smooth' : 'instant' }); }
   const trackPercent = useMemo(() => { const max = TRACK[TRACK.length - 1]; const c = Math.min(progressChapter, max); const i = TRACK.findIndex((n) => n >= c); if (i <= 0) return 0; const a = TRACK[i - 1]; const b = TRACK[i]; return ((i - 1) + (c - a) / (b - a)) / (TRACK.length - 1) * 100; }, [progressChapter]);
   const heroWords = ['A grand adventure.', 'One island at a time.'];
-  return <>
+  return <ReadingHorizonProvider value={through}>
     <a className="skip-link" href="#main">Skip to the voyage</a>
     <header className="site-header">
       <button className="brand" onClick={() => navigate('journey')} aria-label="One Piece Odyssey home"><img src="/favicon.svg" width="44" height="44" alt="" /><span>ONE PIECE<span className="brand-divider"> / </span><b>ODYSSEY</b></span></button>
@@ -147,39 +160,41 @@ export default function App() {
     </header>
     <aside className="saga-rail"><span className="micro rail-title">SAGA</span><nav aria-label="Saga navigation">{sagas.map((s) => { const Icon = sagaIcons[s.id] || Compass; const active = activeSaga === s.id && route.view === 'journey'; return <button key={s.id} className={active ? 'active' : ''} onClick={() => jumpSaga(s.id)} title={s.name} aria-current={active ? 'location' : undefined}>{active ? <m.i layoutId="rail-ink" className="rail-ink" transition={{ type: 'spring', stiffness: 380, damping: 34 }} /> : null}<Icon size={22} className="rail-icon" /><span>{s.name.replace(' Saga', '')}</span></button>; })}</nav><div className="rail-footer"><span className="rail-dash" aria-hidden="true" /><Anchor size={27} /><span>GRAND LINE<br />AWAITS…</span></div></aside>
     <main id="main" className={`main-shell view-${route.view}`}>
-      <AnimatePresence mode="wait" initial={false}>
-        <m.div key={route.view} initial={motion ? { opacity: 0, y: 18 } : false} animate={{ opacity: 1, y: 0 }} exit={motion ? { opacity: 0, y: -10, transition: { duration: 0.16 } } : undefined} transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}>
+      <ReadingControls through={through} view={route.view} onChange={setHorizon} onNavigate={navigate} />
+      <AnimatePresence key={through ?? "all"} mode="wait" initial={false}>
+        <m.div key={`${route.view}-${through ?? 'all'}`} initial={motion ? { opacity: 0, y: 18 } : false} animate={{ opacity: 1, y: 0 }} exit={motion ? { opacity: 0, y: -10, transition: { duration: 0.16 } } : undefined} transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}>
           {route.view === 'journey' ? <>
             <section className="hero">
-              <img className="hero-art" src="/art/hero.webp" alt="The Going Merry sails past a tropical coast under a bright blue sky" width="1536" height="1024" fetchPriority="high" />
+              {through === null || through >= 41 ? <img className="hero-art" src="/art/hero.webp" alt="The Going Merry sails past a tropical coast under a bright blue sky" width="1536" height="1024" fetchPriority="high" /> : null}
               <div className="hero-copy">
                 <h1>{heroWords.map((line, i) => <span className="hero-line-wrap" key={line}><m.span className="hero-line" initial={motion ? { y: '110%', rotate: 2 } : false} animate={{ y: 0, rotate: 0 }} transition={{ duration: 0.7, delay: 0.1 + i * 0.14, ease: [0.22, 1, 0.36, 1] }}>{line}</m.span></span>)}</h1>
                 <m.p initial={motion ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}>Explore the world of One Piece chapter by chapter.<br className="desktop-break" /> Relive the manga. Track your journey. Create your legend.</m.p>
                 <m.div className="hero-actions" initial={motion ? { opacity: 0, y: 14 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.62 }}>
-                  <button className="button primary" onClick={() => jumpSaga(sagas[0].id)}>Begin the voyage <ArrowRight size={19} /></button>
-                  {hasResume ? <button className="resume-link" onClick={resume}>Resume your journey <BookOpen size={16} /></button> : null}
+                  <button className="button primary" onClick={() => jumpSaga(sagas[0]?.id || '')}>Begin the voyage <ArrowRight size={19} /></button>
+                  {hasResume && (!reader.resume.arcId || arcs.some(a => a.id === reader.resume.arcId)) ? <button className="resume-link" onClick={resume}>Resume your journey <BookOpen size={16} /></button> : null}
                 </m.div>
-                <m.div className="spoiler-note" initial={motion ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.8 }}><span className="spoiler-badge">!</span><span><b>Spoiler notice:</b> you’re entering uncharted waters. Full manga spoilers ahead, nakama.</span></m.div>
+                <m.div className="spoiler-note" initial={motion ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.8 }}><span className="spoiler-badge">!</span><span><b>{through === null ? 'Spoiler notice:' : 'Reading progress:'}</b> {through === null ? 'you’re entering uncharted waters. Full manga spoilers ahead, nakama.' : `Showing completed arcs through chapter ${through}. Change your progress above as you read.`}</span></m.div>
               </div>
               <div className="hero-waves" aria-hidden="true" />
-              <div className="hero-bottom"><span>AN UNOFFICIAL ONE PIECE EXPLORER</span><button onClick={() => jumpSaga(sagas[0].id)}>SCROLL TO SET SAIL <ArrowDown size={15} /></button></div>
+              <div className="hero-bottom"><span>AN UNOFFICIAL ONE PIECE EXPLORER</span><button onClick={() => jumpSaga(sagas[0]?.id || '')}>SCROLL TO SET SAIL <ArrowDown size={15} /></button></div>
             </section>
             <section className="voyage-strip" aria-label="Your voyage progress">
-              <div className="voyage-range"><span className="round-icon"><BookOpen size={26} /></span><div><span className="micro">YOUR VOYAGE</span><strong>Ch. 1 – {coverage.coveredThrough}</strong><small>{activeSagaRecord?.name || 'East Blue'} saga</small></div></div>
-              <div className="chapter-track" role="group" aria-label="Jump to a chapter"><span className="track-ship" style={{ left: `${trackPercent}%` }} aria-hidden="true"><Ship size={16} /></span>{TRACK.map((n, i) => <button key={n} className={progressChapter >= n ? 'reached' : ''} onClick={() => jumpChapter(n)} aria-label={`Jump to chapter ${n}`}><i />{i === TRACK.length - 1 ? `${n}+` : n}</button>)}</div>
-              <button className="logbook-button" onClick={() => navigate('saved')}><span className="round-icon"><Bookmark size={22} /></span><span><strong>Your logbook</strong><small>{reader.explored.length} / {arcs.length} arcs explored · {reader.saved.length} saved</small></span><ArrowRight size={18} className="logbook-arrow" /></button>
+              <div className="voyage-range"><span className="round-icon"><BookOpen size={26} /></span><div><span className="micro">YOUR VOYAGE</span><strong>{through === 0 ? 'Ready to set sail' : `Ch. 1 – ${through ?? coverage.coveredThrough}`}</strong><small>{activeSagaRecord?.name || 'East Blue'} saga</small></div></div>
+              <div className="chapter-track" role="group" aria-label="Jump to a chapter"><span className="track-ship" style={{ left: `${trackPercent}%` }} aria-hidden="true"><Ship size={16} /></span>{TRACK.filter(n => through === null || n <= through).map((n, i) => <button key={n} className={progressChapter >= n ? 'reached' : ''} onClick={() => jumpChapter(n)} aria-label={`Jump to chapter ${n}`}><i />{i === TRACK.length - 1 ? `${n}+` : n}</button>)}</div>
+              <button className="logbook-button" onClick={() => navigate('saved')}><span className="round-icon"><Bookmark size={22} /></span><span><strong>Your logbook</strong><small>{reader.explored.filter(id => arcs.some(a => a.id === id)).length} / {arcs.length} arcs explored · {reader.saved.length} saved</small></span><ArrowRight size={18} className="logbook-arrow" /></button>
             </section>
+            {!arcs.length ? <div className="empty-state reading-empty"><BookOpen size={40} /><h2>Your voyage starts here.</h2><p>Choose the last arc you’ve finished in “I’ve read through” above to begin exploring.</p></div> : null}
             <div className="mobile-saga-select"><label htmlFor="saga-select">CHOOSE A SAGA</label><div><select id="saga-select" value={activeSaga} onChange={(e) => jumpSaga(e.target.value)}>{sagas.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select><ChevronDown size={17} /></div></div>
             {sagas.map((s, sagaIndex) => <SagaSection key={s.id} saga={s} index={sagaIndex} reader={reader} hoverArc={hoverArc} setHoverArc={setHoverArc} onOpen={open} onSave={save} onJumpArc={jumpArc} onNavigate={navigate} />)}
-            <section className="horizon" data-reveal><Compass size={48} className="horizon-compass" /><h2>The adventure isn’t over.</h2><p>There are still dreams to chase and seas to cross.<br />Keep your Log Pose pointed toward the next story.</p><button className="button primary" onClick={() => navigate('world')}>Explore the whole world <ArrowRight size={18} /></button><span className="micro">LAUGH TALE · LOCATION UNREVEALED</span></section>
-          </> : <Suspense fallback={<div className="loading-state"><Compass className="loading-icon" /><p>Unfolding the chart…</p></div>}><ExplorerViews motion={motion} view={route.view} route={route} reader={reader} onOpen={open} onNavigate={navigate} onJumpSaga={jumpSaga} onSave={(id) => save(id)} /></Suspense>}
+            <section className="horizon" data-reveal><Compass size={48} className="horizon-compass" /><h2>The adventure isn’t over.</h2><p>There are still dreams to chase and seas to cross.<br />Keep your Log Pose pointed toward the next story.</p><button className="button primary" onClick={() => navigate('world')}>Explore the whole world <ArrowRight size={18} /></button>{through === null ? <span className="micro">LAUGH TALE · LOCATION UNREVEALED</span> : null}</section>
+          </> : <Suspense fallback={<div className="loading-state"><Compass className="loading-icon" /><p>Unfolding the chart…</p></div>}><ExplorerViews key={through ?? 'all'} motion={motion} view={route.view} route={route} reader={reader} onOpen={open} onNavigate={navigate} onJumpSaga={jumpSaga} onSave={(id) => save(id)} /></Suspense>}
         </m.div>
       </AnimatePresence>
       <footer className="site-footer">
         <div className="footer-top">
           <div className="footer-col footer-identity">
             <div className="footer-brand"><Anchor size={22} /><strong>Every dream begins with a voyage.</strong></div>
-            <p>An illustrated field guide to the manga, in reading order. Original summaries and original artwork — no scans, and no spoiler gating anywhere.</p>
+            <p>An illustrated field guide to the manga, in reading order. Original summaries and original artwork. Set your reading progress to hide later story details.</p>
           </div>
           <nav className="footer-col" aria-label="Explore this site">
             <h2 className="micro">EXPLORE</h2>
@@ -191,7 +206,7 @@ export default function App() {
               <li>Story through Ch. {coverage.coveredThrough}</li>
               <li>Official release: Ch. {coverage.latestOfficialChapter}</li>
               <li><a className="footer-link" href={coverage.source} target="_blank" rel="noreferrer noopener">Verified {coverage.verifiedDate} at VIZ</a></li>
-              <li>Full manga spoilers · Map is schematic</li>
+              <li>{through === null ? "Full manga spoilers" : `Reading through Ch. ${through}`} · Map is schematic</li>
             </ul>
           </div>
           <nav className="footer-col" aria-label="Notices">
@@ -214,18 +229,18 @@ export default function App() {
     <PixelBurst burst={burst} />
     {!storageAvailable ? <div className="storage-note" role="status">Saves are available for this session. Device storage is unavailable.</div> : null}
     {route.kind ? <Suspense fallback={<div className="overlay-loading" role="status"><Compass className="loading-icon" /> Opening the logbook… <button className="button" onClick={close}>Cancel</button></div>}><DetailOverlay route={route} reader={reader} motion={motion} onClose={close} onOpen={open} onSave={save} onExplore={explore} onBeat={setBeat} origin={origin} /></Suspense> : null}
-  </>;
+  </ReadingHorizonProvider>;
 }
 
 interface SagaProps { saga: (typeof sagas)[number]; index: number; reader: ReaderState; hoverArc: string | null; setHoverArc: (id: string | null) => void; onOpen: (kind: NonNullable<Route['kind']>, id: string) => void; onSave: (id: string, at?: HTMLElement) => void; onJumpArc: (id: string) => void; onNavigate: (view: View) => void }
 function SagaSection({ saga: s, index: sagaIndex, reader, hoverArc, setHoverArc, onOpen, onSave, onJumpArc, onNavigate }: SagaProps) {
-  const sagaArcs = useMemo(() => arcs.filter((a) => a.sagaId === s.id), [s.id]);
+  const sagaArcs = useMemo(() => arcs.filter((a) => a.sagaId === s.id && isArcVisible(a, reader.spoilerThrough)), [s.id, reader.spoilerThrough]);
   const voyage = useRef<HTMLDivElement>(null);
   const Icon = sagaIcons[s.id] || Compass;
   const hoverIndex = sagaArcs.findIndex((a) => a.id === hoverArc);
   const firstUnexplored = sagaArcs.findIndex((a) => !reader.explored.includes(a.id));
   const shipAt = hoverIndex >= 0 ? hoverIndex - 1 : firstUnexplored > 0 ? firstUnexplored - 1 : 0;
-  const banner = s.id === 'alabasta' ? <div className="boundary-banner" data-reveal><Wind /><div><strong>Beyond the Red Line</strong><span>Reverse Mountain opens the way to Paradise. The Grand Line begins.</span></div><Compass /></div>
+  const banner = reader.spoilerThrough !== null ? null : s.id === 'alabasta' ? <div className="boundary-banner" data-reveal><Wind /><div><strong>Beyond the Red Line</strong><span>Reverse Mountain opens the way to Paradise. The Grand Line begins.</span></div><Compass /></div>
     : s.id === 'sky-island' ? <div className="boundary-banner sky" data-reveal><Wind /><div><strong>A voyage into the sky</strong><span>The Knock Up Stream carries the journey above the Blue Sea.</span></div><Sparkles /></div>
     : s.id === 'fish-man-island' ? <div className="boundary-banner underwater" data-reveal><span className="bubbles" aria-hidden="true"><i /><i /><i /><i /></span><MapPin /><div><strong>10,000 meters beneath the sea</strong><span>A coated ship, an underwater passage, and a route to the New World.</span></div><Wind /></div>
     : s.id === 'egghead' ? <div className="boundary-banner" data-reveal><Compass /><div><strong>The Final Saga begins</strong><span>Egghead opens the last chapter of the voyage. What follows is still being written.</span></div><Sparkles /></div>
@@ -236,7 +251,7 @@ function SagaSection({ saga: s, index: sagaIndex, reader, hoverArc, setHoverArc,
       <div className="saga-side" data-reveal>
         <span className="micro">SAGA {String(sagaIndex + 1).padStart(2, '0')} · {s.region.replaceAll('-', ' ').toUpperCase()}</span>
         <h2>{s.name.replace(' Saga', '')}</h2>
-        <p className="saga-subtitle">{s.subtitle}</p>
+        {reader.spoilerThrough === null ? <p className="saga-subtitle">{s.subtitle}</p> : null}
         <span className="saga-rule" aria-hidden="true"><i /><Icon size={14} /><i /></span>
         <ol className="arc-index">{sagaArcs.map((a) => { const explored = reader.explored.includes(a.id); return <li key={a.id}><button className={hoverArc === a.id ? 'hover' : ''} onClick={() => onJumpArc(a.id)} onMouseEnter={() => setHoverArc(a.id)} onFocus={() => setHoverArc(a.id)} onMouseLeave={() => setHoverArc(null)}><span className="arc-index-icon">{explored ? <Check size={14} /> : <Anchor size={14} />}</span><span><small>ARC {String(arcs.indexOf(a) + 1).padStart(2, '0')}</small><strong>{a.name}</strong><em>{chapterLabel(a)}</em></span></button></li>; })}</ol>
         <span className="saga-chapters">CH. {sagaArcs[0]?.chapters[0]}—{sagaArcs.at(-1)?.status === 'ongoing' ? '' : sagaArcs.at(-1)?.chapters[1]}<small>{sagaArcs.length} {sagaArcs.length === 1 ? 'arc' : 'arcs'} to discover</small></span>
@@ -261,7 +276,7 @@ function ArcStop({ arc: a, index: i, reader, hovered, setHoverArc, onOpen, onSav
       <button className="island-hotspot" aria-label={`Discover ${l?.name || a.name}`} onClick={() => onOpen('location', a.locationIds[0])} onFocus={() => setPeek(true)} onBlur={() => setPeek(false)} onPointerEnter={() => setPeek(true)} onPointerLeave={() => setPeek(false)}>
         <span data-route-anchor className="scene-frame"><Scene locationId={a.locationIds[0]} name={l?.name || a.name} eager={i < 2 && a.sagaId === 'east-blue'} /></span>
         <span className="island-tag"><MapPin size={13} />{l?.name || a.name}<span>+</span></span>
-        <span className={`island-peek ${peek ? 'show' : ''}`} aria-hidden="true"><span className="micro">LOOK CLOSER</span>{(l?.landmarks || []).slice(0, 3).map((x) => <em key={x}>{x}</em>)}</span>
+        <span className={`island-peek ${peek ? 'show' : ''}`} aria-hidden="true"><span className="micro">LOOK CLOSER</span>{(reader.spoilerThrough === null ? l?.landmarks || [] : []).slice(0, 3).map((x) => <em key={x}>{x}</em>)}</span>
       </button>
     </div>
     <div className="arc-copy">

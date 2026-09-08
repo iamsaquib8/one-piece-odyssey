@@ -27,6 +27,7 @@
   --saga-color: var(--ocean);
   color-scheme: light;
   scrollbar-color: var(--paper-3) var(--sea-abyss);
+  scrollbar-width: auto;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -773,3 +774,22 @@ input[type='search']::-webkit-search-cancel-button, input[type='search']::-webki
   .search-trigger{width:44px;padding:0;justify-content:center}.search-trigger span,.search-trigger kbd{display:none}
   .footer-top{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Shared reading progress and discovery navigation; inherits the atlas palette. */
+.reading-controls{background:var(--paper);color:var(--ink);padding:20px clamp(20px,4vw,56px);border-bottom:2px solid var(--ink)}
+.reading-limit{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.reading-limit>svg{flex-shrink:0;color:var(--sea)}
+.reading-limit>div{min-width:0;flex:0 1 340px}
+.reading-limit label{display:block;font-size:13px;font-weight:900;margin-bottom:3px}
+.reading-limit select{width:100%;min-height:44px;padding:8px 32px 8px 12px;background:var(--paper);color:var(--ink);border:1px solid var(--ink);border-radius:4px;font:inherit;font-size:14px;cursor:pointer}
+.reading-limit select:focus-visible{outline:3px solid var(--sea);outline-offset:3px}
+.reading-limit-status{flex:1 1 220px;font-size:13px;line-height:1.5;max-width:52ch}
+.discovery-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.discovery-nav button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 14px;border:1px solid transparent;border-radius:4px;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer}
+.discovery-nav button:hover{border-color:var(--sea);background:#087f9110}
+.discovery-nav button.active{background:var(--ink);color:var(--paper)}
+.discovery-nav button:focus-visible{outline:3px solid var(--sea);outline-offset:3px}
+.reading-empty{color:var(--paper)}
+.reading-saved-note{color:var(--paper);max-width:65ch}
+@media(max-width:760px){.reading-controls{padding:16px 20px}.reading-limit{gap:10px}.reading-limit>div{flex:1}.reading-limit-status{flex-basis:100%;font-size:12px}.discovery-nav{gap:4px}.discovery-nav button{font-size:12px;padding:8px 9px}.discovery-nav button:last-child{display:none}}
+@media(max-width:360px){.discovery-nav button{flex:1;gap:5px}}
