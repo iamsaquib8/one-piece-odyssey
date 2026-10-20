@@ -24,7 +24,7 @@ import { buildBountyBoard } from '../src/data/bounty-board';
 import { coverage } from '../src/data/coverage';
 import { encodeRoute } from '../src/state';
 import type { Route } from '../src/types';
-import { crewRowCard, fruitCard, plainCard, posterCard, sceneCard } from './og/cards';
+import { crewRowCard, fruitCard, plainCard, posterCard, posterMakerCard, sceneCard } from './og/cards';
 import { devilFruits, fruitTypeLabel } from '../src/data/devil-fruits';
 import { characters as strawHats } from '../src/data/characters';
 
@@ -75,7 +75,7 @@ interface Page {
 
 const nav = `<nav aria-label="Sections">${[
   link({ view: 'journey' }, 'Journey'), link({ view: 'world' }, 'World atlas'), link({ view: 'crew' }, 'Crews'),
-  link({ view: 'trails' }, 'Character trails'), link({ view: 'mysteries' }, 'Mysteries'), link({ view: 'bounties' }, 'Bounties'), link({ view: 'devil-fruits' }, 'Devil Fruits'),
+  link({ view: 'trails' }, 'Character trails'), link({ view: 'mysteries' }, 'Mysteries'), link({ view: 'bounties' }, 'Bounties'), link({ view: 'devil-fruits' }, 'Devil Fruits'), link({ view: 'poster' }, 'Poster maker'),
 ].join(' · ')}</nav>`;
 const footer = `<footer><p>ONE PIECE © Eiichiro Oda / Shueisha. ${NAME} is an independent, non-commercial fan project. Story summaries are original writing; art is drawn in code. Narrated through chapter ${coverage.coveredThrough}.</p></footer>`;
 
@@ -208,6 +208,7 @@ pages.push(
   view({ view: 'mysteries' }, 'Mystery board', 'Discover', "Source-linked questions whose clues unlock with your reading progress.", list(buildMysteries(null).map((m) => esc(m.question)))),
   view({ view: 'bounties' }, 'Bounty board', 'Discover', 'Every bounty the One Piece story has posted, ranked by latest figure, with how each one grew chapter by chapter.', `<ol>${buildBountyBoard(allCharacters).map((r) => `<li>${link({ view: 'journey', kind: 'character', id: r.character.id }, r.character.name)}: ฿${esc(r.current.amount)} <small>(${esc(r.current.label)}, Ch. ${r.current.chapter})</small></li>`).join('')}</ol>`),
   view({ view: 'devil-fruits' }, 'Devil Fruit encyclopedia', 'Discover', 'Every Devil Fruit eaten by a profiled character, and every one named on Elbaf: what it does, who has held it, and when it awakened.', list(devilFruits.map((f) => link({ view: 'journey', kind: 'fruit', id: f.id }, `${f.name} (${f.romaji})`)))),
+  { ...view({ view: 'poster' }, 'Wanted poster maker', 'Make', 'Build a pixel portrait from the recipe every character here is drawn with, set your bounty, and download your own wanted poster.', '<p>Choose a face, a hat, a scar and colours, write your name and bounty, and save the poster as a PNG. Nothing is uploaded; the share link carries the whole poster.</p>'), image: { path: 'og/view/poster.png', alt: 'A sample wanted poster drawn in code', svg: posterMakerCard } },
   view({ view: 'legal' }, 'Disclaimer and terms', 'Notices', 'Rights, privacy and contact details for this non-commercial fan project.', ''),
   view({ view: 'search' }, 'Search', 'Search', 'Search arcs, places, characters and crews.', '', false),
   view({ view: 'saved' }, 'Your logbook', 'Logbook', 'Arcs and places you saved, kept in your own browser.', '', false),

@@ -3,6 +3,7 @@ import { useReadingHorizon } from '../reading-horizon';
 import DiscoveryViews from './DiscoveryViews';
 import BountyBoard from './BountyBoard';
 import DevilFruitsView from './DevilFruits';
+import PosterMaker from './PosterMaker';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Cherry, ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
 import { sagas as allSagas, chapterLabel } from '../data/arc-index';
@@ -23,10 +24,11 @@ export default function ExplorerViews(props: Props) {
     case 'mysteries': return <DiscoveryViews view={props.view} onOpen={props.onOpen} />;
     case 'bounties': return <BountyBoard onOpen={props.onOpen} />;
     case 'devil-fruits': return <DevilFruitsView onOpen={props.onOpen} />;
+    case 'poster': return <PosterMaker />;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;
-    case 'crew': return <CrewView {...props} />;
+    case 'crew': return <CrewView {...props} onMakePoster={() => props.onNavigate('poster')} />;
     case 'legal': return <LegalView {...props} />;
     default: return null;
   }

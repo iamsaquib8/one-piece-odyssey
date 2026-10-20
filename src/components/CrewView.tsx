@@ -12,6 +12,7 @@ interface CrewViewProps {
   reader: ReaderState;
   onOpen: (kind: 'arc' | 'location' | 'character' | 'crew', id: string) => void;
   onSave: (id: string) => void;
+  onMakePoster?: () => void;
 }
 
 type StoryFilter = `saga:${string}` | `arc:${string}` | 'all';
@@ -47,7 +48,7 @@ function MemberPortrait({ id, query, onOpen, characterById }: { id: string; quer
   </button>;
 }
 
-export default function CrewView({ reader, onOpen, onSave }: CrewViewProps) {
+export default function CrewView({ reader, onOpen, onSave, onMakePoster }: CrewViewProps) {
   const horizon = useReadingHorizon();
   const catalog = useReaderCatalog();
   const { arcs, characters, crews } = catalog;
@@ -87,6 +88,7 @@ export default function CrewView({ reader, onOpen, onSave }: CrewViewProps) {
         <span className="micro">FIELD GUIDE 04 · THE PEOPLE WHO MOVE THE ERA</span>
         <h1 id="crew-title">A fleet of<br /><i>crossed courses.</i></h1>
         <p>{horizon===null?<>From one borrowed hat to the powers contesting the final sea: {crews.length} crews and factions, ordered by their weight in the story. Relevance describes narrative reach, not strength. Profiles cover through chapter {crewCoverageThrough}.</>:<>Crews and factions revealed through your completed arcs. Records grow as you move the reading horizon.</>}</p>
+        {onMakePoster ? <button className="button fleet-poster-cta" type="button" onClick={onMakePoster}>Make your own wanted poster</button> : null}
       </div>
       <div className="fleet-compass" aria-hidden="true">
         <Compass />

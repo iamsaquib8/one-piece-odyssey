@@ -8,6 +8,8 @@ import { PixelScene } from '../../src/components/PixelScene';
 import { PortraitSvg } from '../../src/components/PortraitSvg';
 import { recipeFor } from '../../src/components/portrait-recipe';
 import FruitIcon from '../../src/components/FruitIcon';
+import WantedPoster from '../../src/components/WantedPoster';
+import { DEFAULT_POSTER } from '../../src/art/poster';
 import type { FruitType } from '../../src/data/devil-fruits';
 import { pixelText, wrapPixelText } from '../../src/art/pixel-font';
 
@@ -117,6 +119,17 @@ export function fruitCard(o: { id: string; type: FruitType; eyebrow: string; tit
     ${title.svg}
     ${o.subtitle ? block(o.subtitle, 544, 236 + title.height + 28, 600, 3, 3, INK, 2).svg : ''}
     ${mark(INK)}`);
+}
+
+/** The poster maker: a sample poster pinned beside the invitation. */
+export function posterMakerCard() {
+  const poster = renderToStaticMarkup(<WantedPoster poster={DEFAULT_POSTER} title="" />).replace(/ width="600" height="860"/, ' x="96" y="42" width="380" height="545"');
+  return frame(`<rect width="${W}" height="${H}" fill="#6b4a2b"/>${scanlines}
+    <rect x="104" y="50" width="380" height="545" fill="${INK}"/>${poster}
+    ${text('MAKE YOUR OWN', 540, 170, 6, GOLD)}
+    ${block('WANTED POSTER', 540, 230, 620, 9, 6, PAPER, 2).svg}
+    ${block('Pixel portrait, your price, one PNG.', 544, 420, 600, 3, 3, PAPER_2, 2).svg}
+    ${mark()}`);
 }
 
 export const escapeXml = esc;

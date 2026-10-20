@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Cherry, ChevronDown, Coins, Route as RouteIcon, Search, ShieldCheck, X } from 'lucide-react';
+import { Cherry, ChevronDown, Coins, Route as RouteIcon, ScrollText, Search, ShieldCheck, X } from 'lucide-react';
 import { arcSummaries } from '../data/arc-index';
 import type { View } from '../types';
 
@@ -56,5 +56,6 @@ export function DiscoveryNavigation({ view, onNavigate }: { view: View; onNaviga
       <button className={view === 'mysteries' ? 'active' : ''} aria-current={view === 'mysteries' ? 'page' : undefined} onClick={() => onNavigate('mysteries')}><Search size={18} /> Mystery board</button>
       <button className={view === 'bounties' ? 'active' : ''} aria-current={view === 'bounties' ? 'page' : undefined} onClick={() => onNavigate('bounties')}><Coins size={18} /> Bounty board</button>
       <button className={view === 'devil-fruits' ? 'active' : ''} aria-current={view === 'devil-fruits' ? 'page' : undefined} onClick={() => onNavigate('devil-fruits')}><Cherry size={18} /> Devil Fruits</button>
+      <button className={view === 'poster' ? 'active' : ''} aria-current={view === 'poster' ? 'page' : undefined} onClick={() => onNavigate('poster')}><ScrollText size={18} /> Poster maker</button>
     </nav>;
 }

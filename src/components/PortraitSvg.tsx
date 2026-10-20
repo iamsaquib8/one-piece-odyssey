@@ -58,7 +58,9 @@ interface PortraitSvgProps {
 /** The portrait drawing itself. Every colour has a literal fallback, so it renders with or without crews.css. */
 export function PortraitSvg({ recipe, color, clipId, label, laboon = false, still = false }: PortraitSvgProps) {
   const eyeY = recipe.kind === 'skull' ? 59 : 57;
-  if (laboon) return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label={label}>
+  // An empty label means the portrait sits inside a larger image that already names it.
+  const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true };
+  if (laboon) return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" {...a11y}>
     <defs><clipPath id={clipId}><circle cx="60" cy="60" r="56" /></clipPath></defs>
     <g clipPath={`url(#${clipId})`} stroke="#10243a" strokeWidth="3" strokeLinecap="round">
       <circle cx="60" cy="60" r="58" fill="#78bac2" />
@@ -71,7 +73,7 @@ export function PortraitSvg({ recipe, color, clipId, label, laboon = false, stil
     </g>
     <circle cx="60" cy="60" r="56" fill="none" stroke="#10243a" strokeWidth="4" />
   </svg>;
-  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label={label}>
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" {...a11y}>
     <defs><clipPath id={clipId}><circle cx="60" cy="60" r="56" /></clipPath></defs>
     <g clipPath={`url(#${clipId})`}>
       <circle cx="60" cy="60" r="58" fill={`var(--portrait-color, ${color})`} />
