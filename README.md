@@ -5,11 +5,11 @@
 [![Live site](https://img.shields.io/badge/live-one--piece--odyssey.netlify.app-087f91)](https://one-piece-odyssey.netlify.app)
 [![CI](https://github.com/iamsaquib8/one-piece-odyssey/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsaquib8/one-piece-odyssey/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-ffd34e)](LICENSE)
-[![Covered through chapter 1191](https://img.shields.io/badge/covered_through-ch._1191-f45156)](src/data/coverage.ts)
+[![Covered through chapter 1196](https://img.shields.io/badge/covered_through-ch._1196-f45156)](src/data/coverage.ts)
 
 **[Set sail at one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)** · [Help build the bible](#help-build-the-bible) · Star the repo to follow the weekly chapter updates.
 
-An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 234 story beats, 93 battle logs and 70 places, narrated through chapter **1191**.
+An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 237 story beats, 95 battle logs and 70 places, narrated through chapter **1196**.
 
 Everything you see is drawn in code. There are no manga panels, scans or translations anywhere in this repository.
 

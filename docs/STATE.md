@@ -8,7 +8,7 @@ The local app includes character journeys, reading-progress controls, and a myst
 
 PR #5 (`reader-discovery`) now incorporates main's island-to-arc navigation and battle motion comics. The merge retains limited-mode portrait silhouettes before rendering any full-mode artwork. The UX follow-up moves reading settings into a compact header disclosure, adds Discover to primary/mobile navigation, shortens discovery mastheads, labels story previews, and opens character trails at their filterable timeline. The journey page no longer has a settings strip above its artwork.
 
-Coverage runs from chapter 1 to **1191**, the latest released chapter as of 6 September 2026. Elbaf is marked `ongoing`.
+Coverage runs from chapter 1 to **1196**, the latest released chapter as of 21 October 2026. Elbaf is marked `ongoing`.
 
 Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**, repository at **[github.com/iamsaquib8/one-piece-odyssey](https://github.com/iamsaquib8/one-piece-odyssey)**.
 
@@ -18,7 +18,7 @@ To pull in newly released chapters, use the `chapter-refresh` skill in `.claude/
 
 | Command | Result |
 |---|---|
-| `npm run validate` | ✓ 33 arcs · 234 beats · 93 battles · 70 locations · 113 character profiles · 46 crews/factions · 42 connections · 483 cast entries · coverage Ch. 1–1191 |
+| `npm run validate` | ✓ 33 arcs · 237 beats · 95 battles · 70 locations · 113 character profiles · 46 crews/factions · 42 connections · 486 cast entries · coverage Ch. 1–1196 |
 | `npm run typecheck` | clean |
 | `npm test` | 10 files, 44 tests passed |
 | `npm run build` | TypeScript and production build pass; globe and shared content chunk-size warnings, see follow-ups |
