@@ -1,0 +1,28 @@
+name: Portrait recipe
+description: Request or propose a hand-drawn portrait recipe for a character.
+labels: [art, portrait]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Portraits are assembled in code from a small recipe (hair, hat, scar, effect and a few colours) in `src/components/CharacterPortrait.tsx`. Characters without a recipe get a generated one. You do not need art skills to add one.
+  - type: input
+    id: character
+    attributes:
+      label: Character
+      description: Name, and the id from the site link if you know it.
+    validations:
+      required: true
+  - type: textarea
+    id: recipe
+    attributes:
+      label: Proposed recipe
+      description: Any of hair colour, coat colour, skin, hair style (spikes, swept, long, round, mohawk, bald, flame), hat, scar, glasses, beard, horns, effect. Leave blank to request one.
+      render: ts
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Ground rules
+      options:
+        - label: I have not attached or traced any manga artwork.
+          required: true

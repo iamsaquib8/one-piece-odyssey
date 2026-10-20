@@ -26,7 +26,7 @@ describe('device-local logbook', () => {
 });
 describe('shareable navigation', () => {
   it('round trips discovery views without accepting a shared spoiler override', () => {
-    expect(decodeRoute('?view=trails&spoilerThrough=1191')).toEqual({view: 'trails'});
+    expect(decodeRoute('?view=trails&spoilerThrough=400')).toEqual({view: 'trails'});
     expect(decodeRoute(encodeRoute({view: 'mysteries'}))).toEqual({view: 'mysteries'});
   });
   it('round-trips crew profiles and preserves the originating view',()=>{

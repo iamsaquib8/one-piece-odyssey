@@ -83,6 +83,10 @@ for (const file of PROSE) {
     }
   });
 }
+// The README's chapter badge is a URL, so the prose patterns above cannot see its number.
+const badge = readFileSync(join(root, 'README.md'), 'utf8').match(/badge\/covered_through-ch\._(\d+)-/);
+if (!badge) problems.push('README.md: the "covered through" chapter badge is missing');
+else if (Number(badge[1]) !== coverage.coveredThrough) problems.push(`README.md chapter badge says ${badge[1]}; coverage.ts says ${coverage.coveredThrough}`);
 console.log(`  checked ${PROSE.length} documents for stale counts and chapter numbers`);
 console.log('  checked src/data for chapters cited beyond the cutoff');
 

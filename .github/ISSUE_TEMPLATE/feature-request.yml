@@ -1,0 +1,16 @@
+name: Feature idea
+description: Suggest something the explorer should do or show.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What would you like to see, and when would you use it?
+    validations:
+      required: true
+  - type: textarea
+    id: spoilers
+    attributes:
+      label: Spoilers
+      description: How should it behave for readers who limit discovery with "I've read through"?

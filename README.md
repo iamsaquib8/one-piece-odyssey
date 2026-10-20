@@ -1,6 +1,13 @@
 # One Piece Odyssey
 
-**[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**
+**Every arc, island and fight of the One Piece manga as one animated voyage, and every pixel of it drawn in code. No manga panels, no scans.**
+
+[![Live site](https://img.shields.io/badge/live-one--piece--odyssey.netlify.app-087f91)](https://one-piece-odyssey.netlify.app)
+[![CI](https://github.com/iamsaquib8/one-piece-odyssey/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsaquib8/one-piece-odyssey/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-ffd34e)](LICENSE)
+[![Covered through chapter 1191](https://img.shields.io/badge/covered_through-ch._1191-f45156)](src/data/coverage.ts)
+
+**[Set sail at one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)** · [Help build the bible](#help-build-the-bible) · Star the repo to follow the weekly chapter updates.
 
 An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 234 story beats, 93 battle logs and 70 places, narrated through chapter **1191**.
 
@@ -111,7 +118,7 @@ Every summary here is original fan writing, marked `editorialStatus: 'draft'`. A
 
 **ONE PIECE © Eiichiro Oda / Shueisha.** This is an independent, non-commercial fan project with no affiliation with, endorsement by, or connection to Eiichiro Oda, Shueisha, VIZ Media, Toei Animation, or any other rights holder. All names, characters, places and story events belong to their owners. Please read the manga through its official publishers.
 
-The source code is released under the [MIT License](LICENSE). The original prose and illustrations in this repository describe a work that is not ours; do not present them as official One Piece material or resell them.
+The source code is released under the [MIT License](LICENSE). The original prose and illustrations in this repository describe a work that is not ours; [NOTICE.md](NOTICE.md) sets out what the license does not cover. Do not present any of it as official One Piece material or resell it.
 
 Rights holders who want something changed or removed: the contact address is on the site's notices page and in `src/data/legal.ts`, and requests are handled promptly.
 
@@ -132,6 +139,14 @@ npm run build
 npx netlify deploy --prod --dir=dist
 ```
 
+## Help build the bible
+
+The aim is the most complete illustrated One Piece reference on the web, with every fact checkable against the manga. Good places to start:
+
+- **Fix a fact.** Every summary is a draft. If a chapter range or a detail is wrong, open a [content correction](https://github.com/iamsaquib8/one-piece-odyssey/issues/new?template=content-correction.yml).
+- **Draw a face.** Characters without a hand-written recipe get a generated portrait. A recipe is a dozen fields (hair, hat, scar, effect), so no art skills are needed: [request or add one](https://github.com/iamsaquib8/one-piece-odyssey/issues/new?template=portrait-recipe.yml).
+- **Pick up a starter issue.** Issues labelled [good first issue](https://github.com/iamsaquib8/one-piece-odyssey/labels/good%20first%20issue) name the files to touch and how to check your work.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `npm run validate` after touching content, keep animation behind the motion toggle, and never add manga artwork.
@@ -139,3 +154,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `npm run validate` after t
 ## Keeping up with the manga
 
 The story cutoff lives in `src/data/coverage.ts`. `npm run refresh:audit` reports how far behind the edition is and finds any place that repeats an edition fact and has drifted from it. The full procedure for pulling in newly released chapters — research, writing, art, verification — is the `chapter-refresh` skill in `.claude/skills/`.
+
+## Star history
+
+[![Star history chart](https://api.star-history.com/svg?repos=iamsaquib8/one-piece-odyssey&type=Date)](https://star-history.com/#iamsaquib8/one-piece-odyssey&Date)
