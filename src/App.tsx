@@ -6,6 +6,7 @@ import { coverage } from './data/coverage';
 import { legalSections, legalUpdated } from './data/legal';
 import { canonicalUrl, decodeReader, decodeRoute, encodeRoute, isLegacyUrl, readReader, saveReader, toggleItem } from './state';
 import type { ReaderState, Route, View } from './types';
+import { DISCOVER_VIEWS } from './types';
 import { Scene } from './components/Scene';
 import { VoyageRoute } from './components/VoyageRoute';
 import { PixelBurst, useBurst } from './components/PixelBurst';
@@ -46,7 +47,8 @@ export default function App() {
   const [route, setRoute] = useState<Route>(() => decodeRoute(window.location.pathname + window.location.search));
   const [reader, setReader] = useState<ReaderState>(initialReader);
   const through = reader.spoilerThrough;
-  const activeView = route.view === 'mysteries' ? 'trails' : route.view;
+  const discovering = (DISCOVER_VIEWS as readonly View[]).includes(route.view);
+  const activeView = discovering ? 'trails' : route.view;
   const arcs = useMemo(() => allArcs.filter(a => isArcVisible(a, through)), [through]);
   const sagas = useMemo(() => allSagas.filter(s => arcs.some(a => a.sagaId === s.id)), [arcs]);
   const [toast, setToast] = useState('');
@@ -164,7 +166,7 @@ export default function App() {
     </header>
     <aside className="saga-rail"><span className="micro rail-title">SAGA</span><nav aria-label="Saga navigation">{sagas.map((s) => { const Icon = sagaIcons[s.id] || Compass; const active = activeSaga === s.id && route.view === 'journey'; return <button key={s.id} className={active ? 'active' : ''} onClick={() => jumpSaga(s.id)} title={s.name} aria-current={active ? 'location' : undefined}>{active ? <m.i layoutId="rail-ink" className="rail-ink" transition={{ type: 'spring', stiffness: 380, damping: 34 }} /> : null}<Icon size={22} className="rail-icon" /><span>{s.name.replace(' Saga', '')}</span></button>; })}</nav><div className="rail-footer"><span className="rail-dash" aria-hidden="true" /><Anchor size={27} /><span>GRAND LINE<br />AWAITS…</span></div></aside>
     <main id="main" className={`main-shell view-${route.view}`}>
-      {route.view === 'trails' || route.view === 'mysteries' ? <DiscoveryNavigation view={route.view} onNavigate={navigate} /> : null}
+      {discovering ? <DiscoveryNavigation view={route.view} onNavigate={navigate} /> : null}
       <AnimatePresence key={through ?? "all"} mode="wait" initial={false}>
         <m.div key={`${route.view}-${through ?? 'all'}`} initial={motion ? { opacity: 0, y: 18 } : false} animate={{ opacity: 1, y: 0 }} exit={motion ? { opacity: 0, y: -10, transition: { duration: 0.16 } } : undefined} transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}>
           {route.view === 'journey' ? <>

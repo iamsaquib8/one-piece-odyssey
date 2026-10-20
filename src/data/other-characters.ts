@@ -1,5 +1,6 @@
 import type { Character } from '../types';
 import { characters as strawHatCharacters } from './characters';
+import { supportingBounties } from './bounties';
 
 export interface PortraitCharacter extends Character {
   animatedPortrait: true;
@@ -16,7 +17,7 @@ function profile(p: Profile): PortraitCharacter {
     recruitment: 'Their affiliation is established in the manga during the crew’s relevant story era.',
     description: `${p.name} is included as a key figure in the story’s network of crews and factions. This profile records a representative affiliation rather than an exhaustive roster.`,
     milestones: [],
-    bounties: [],
+    bounties: supportingBounties[p.id] ?? [],
     animatedPortrait: true,
     ...p,
   };

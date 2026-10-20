@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ChevronDown, Route as RouteIcon, Search, ShieldCheck, X } from 'lucide-react';
+import { ChevronDown, Coins, Route as RouteIcon, Search, ShieldCheck, X } from 'lucide-react';
 import { arcSummaries } from '../data/arc-index';
 import type { View } from '../types';
 
@@ -54,5 +54,6 @@ export function DiscoveryNavigation({ view, onNavigate }: { view: View; onNaviga
   return <nav className="discovery-nav" aria-label="Story discoveries">
       <button className={view === 'trails' ? 'active' : ''} aria-current={view === 'trails' ? 'page' : undefined} onClick={() => onNavigate('trails')}><RouteIcon size={18} /> Character journeys</button>
       <button className={view === 'mysteries' ? 'active' : ''} aria-current={view === 'mysteries' ? 'page' : undefined} onClick={() => onNavigate('mysteries')}><Search size={18} /> Mystery board</button>
+      <button className={view === 'bounties' ? 'active' : ''} aria-current={view === 'bounties' ? 'page' : undefined} onClick={() => onNavigate('bounties')}><Coins size={18} /> Bounty board</button>
     </nav>;
 }

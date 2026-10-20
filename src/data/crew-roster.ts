@@ -4,6 +4,7 @@
  * already recorded on each character's bounty history.
  */
 import type { Arc, Character } from '../types';
+import { bountyChapter } from './bounties';
 
 export interface RosterEntry { character: Character; joins: boolean }
 export interface BountyChange { character: Character; amount: string; after: string; previous?: string }
@@ -23,18 +24,13 @@ export function crewAboard(arc: Pick<Arc, 'id'>, arcs: Pick<Arc, 'id'>[], charac
     .map((c) => ({ character: c, joins: c.arcId === arc.id }));
 }
 
-const chapterOf = (after: string): number | undefined => {
-  const m = after.match(/(\d{1,4})\s*$/);
-  return m ? Number(m[1]) : undefined;
-};
-
 /** Bounties first shown inside the arc's chapter span. */
 export function bountyChanges(arc: Pick<Arc, 'chapters'>, characters: Character[]): BountyChange[] {
   const [from, to] = arc.chapters;
   const out: BountyChange[] = [];
   for (const c of characters) {
     c.bounties.forEach((b, i) => {
-      const ch = chapterOf(b.after);
+      const ch = bountyChapter(b.after);
       if (ch !== undefined && ch >= from && ch <= to) out.push({ character: c, amount: b.amount, after: b.after, previous: c.bounties[i - 1]?.amount });
     });
   }

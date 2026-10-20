@@ -20,6 +20,7 @@ import { allCharacters } from '../src/data/all-characters';
 import { crews } from '../src/data/crews';
 import { stagings } from '../src/data/staging';
 import { buildMysteries } from '../src/data/mysteries';
+import { buildBountyBoard } from '../src/data/bounty-board';
 import { coverage } from '../src/data/coverage';
 import { encodeRoute } from '../src/state';
 import type { Route } from '../src/types';
@@ -73,7 +74,7 @@ interface Page {
 
 const nav = `<nav aria-label="Sections">${[
   link({ view: 'journey' }, 'Journey'), link({ view: 'world' }, 'World atlas'), link({ view: 'crew' }, 'Crews'),
-  link({ view: 'trails' }, 'Character trails'), link({ view: 'mysteries' }, 'Mysteries'),
+  link({ view: 'trails' }, 'Character trails'), link({ view: 'mysteries' }, 'Mysteries'), link({ view: 'bounties' }, 'Bounties'),
 ].join(' · ')}</nav>`;
 const footer = `<footer><p>ONE PIECE © Eiichiro Oda / Shueisha. ${NAME} is an independent, non-commercial fan project. Story summaries are original writing; art is drawn in code. Narrated through chapter ${coverage.coveredThrough}.</p></footer>`;
 
@@ -184,6 +185,7 @@ pages.push(
   view({ view: 'crew' }, 'Crews and factions', 'Registry', 'Wanted posters for the Straw Hats and a registry of the pirate crews and factions around them.', list(crews.map((c) => link({ view: 'journey', kind: 'crew', id: c.id }, c.name)))),
   view({ view: 'trails' }, 'Character trails', 'Discover', 'Follow a character through the story: chronological moments, battles and bounty changes.', list(allCharacters.map((c) => link({ view: 'journey', kind: 'character', id: c.id }, c.name)))),
   view({ view: 'mysteries' }, 'Mystery board', 'Discover', "Source-linked questions whose clues unlock with your reading progress.", list(buildMysteries(null).map((m) => esc(m.question)))),
+  view({ view: 'bounties' }, 'Bounty board', 'Discover', 'Every bounty the One Piece story has posted, ranked by latest figure, with how each one grew chapter by chapter.', `<ol>${buildBountyBoard(allCharacters).map((r) => `<li>${link({ view: 'journey', kind: 'character', id: r.character.id }, r.character.name)}: ฿${esc(r.current.amount)} <small>(${esc(r.current.label)}, Ch. ${r.current.chapter})</small></li>`).join('')}</ol>`),
   view({ view: 'legal' }, 'Disclaimer and terms', 'Notices', 'Rights, privacy and contact details for this non-commercial fan project.', ''),
   view({ view: 'search' }, 'Search', 'Search', 'Search arcs, places, characters and crews.', '', false),
   view({ view: 'saved' }, 'Your logbook', 'Logbook', 'Arcs and places you saved, kept in your own browser.', '', false),

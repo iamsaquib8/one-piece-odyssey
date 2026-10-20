@@ -7,10 +7,10 @@ import { crews, crewFirstAppearance } from './crews';
 import { stagingAtProgress, arcAtProgress, DRAGON_IDENTITY_THROUGH } from './spoiler-overrides';
 import { crewAboard } from './crew-roster';
 import { characters as strawHats } from './characters';
+import { bountyChapter } from './bounties';
 
 const canonicalId = (id: string) => id === 'jinbe-knight' ? 'jinbe' : id === 'miss-all-sunday' ? 'robin' : id;
 const firstChapter = (text: string) => Number(text.match(/\d+/)?.[0] ?? Infinity);
-const lastChapter = (text: string) => Number(text.match(/\d+\s*$/)?.[0] ?? Infinity);
 
 /** Project content before it reaches a view; undated edition-wide prose stays out of limited mode. */
 export function buildReaderCatalog(through: number | null) {
@@ -23,7 +23,7 @@ export function buildReaderCatalog(through: number | null) {
     return {
       ...c, name: entry.member.name, epithet: '', role: 'Character',
       description: entry.member.role, dream: '', recruitment: '', arcId: entry.arcId,
-      milestones: [], bounties: c.bounties.filter(b => lastChapter(b.after) <= through),
+      milestones: [], bounties: c.bounties.filter(b => (bountyChapter(b.after) ?? Infinity) <= through),
     };
   });
   const knownIds = new Set(knownCharacters.map(c => c.id));

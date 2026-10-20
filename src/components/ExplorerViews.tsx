@@ -1,6 +1,7 @@
 import { useReaderCatalog } from '../data/reader-catalog';
 import { useReadingHorizon } from '../reading-horizon';
 import DiscoveryViews from './DiscoveryViews';
+import BountyBoard from './BountyBoard';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
 import { sagas as allSagas, chapterLabel } from '../data/arc-index';
@@ -19,6 +20,7 @@ export default function ExplorerViews(props: Props) {
   switch (props.view) {
     case 'trails':
     case 'mysteries': return <DiscoveryViews view={props.view} onOpen={props.onOpen} />;
+    case 'bounties': return <BountyBoard onOpen={props.onOpen} />;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;
