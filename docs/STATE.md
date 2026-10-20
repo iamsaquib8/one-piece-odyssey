@@ -1,12 +1,18 @@
-# Project state — 8 September 2026
+# Project state — 21 October 2026
 
 Where the project stands, what is verified, and what to pick up next. Read this first when returning to the work.
 
 ## Snapshot
 
-The local app includes character journeys, reading-progress controls, and a mystery board. These additions have not been deployed. It is called **One Piece Odyssey** (renamed from Grand Line Odyssey on 6 September; the localStorage key stayed `grand-line-logbook-v1` so nobody's saved logbook is lost, and the privacy notice names that key literally). The repository is prepared for a public GitHub push: README, LICENSE, CONTRIBUTING, CI workflow and a cleaned `.gitignore` are in place.
+The growth round of 21 October is on one branch, `chore/repo-polish`, awaiting review as pull request #6. The design record is `docs/superpowers/specs/2026-10-21-growth-design.md`. It is called **One Piece Odyssey**. The localStorage key is still `grand-line-logbook-v1` from the old name, so saved logbooks survive, and the privacy notice names that key literally.
 
-PR #5 (`reader-discovery`) now incorporates main's island-to-arc navigation and battle motion comics. The merge retains limited-mode portrait silhouettes before rendering any full-mode artwork. The UX follow-up moves reading settings into a compact header disclosure, adds Discover to primary/mobile navigation, shortens discovery mastheads, labels story previews, and opens character trails at their filterable timeline. The journey page no longer has a settings strip above its artwork.
+What the round adds:
+- Path URLs, and a prerendered page and share image for every record.
+- The chapter refresh to 1196.
+- A Bounty Board, a Devil Fruit encyclopedia and a wanted-poster maker.
+- Repository polish: plain MIT `LICENSE` with `NOTICE.md`, issue and PR templates, badges.
+
+The details are under "Growth round" below.
 
 Coverage runs from chapter 1 to **1196**, the latest released chapter as of 21 October 2026. Elbaf is marked `ongoing`.
 
@@ -14,15 +20,16 @@ Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)
 
 To pull in newly released chapters, use the `chapter-refresh` skill in `.claude/skills/` — it owns the whole procedure, and `npm run refresh:audit` reports what is stale.
 
-## Verification, last run 8 September
+## Verification, last run 21 October
 
 | Command | Result |
 |---|---|
-| `npm run validate` | ✓ 33 arcs · 237 beats · 95 battles · 70 locations · 113 character profiles · 46 crews/factions · 42 connections · 486 cast entries · coverage Ch. 1–1196 |
+| `npm run refresh:audit` | ✓ every repeated fact matches the data |
+| `npm run validate` | ✓ 33 arcs · 237 beats · 95 battles · 70 locations · 113 character profiles · 99 bounties · 56 Devil Fruits · 46 crews/factions · 42 connections · 486 cast entries · coverage Ch. 1–1196 |
 | `npm run typecheck` | clean |
-| `npm test` | 10 files, 44 tests passed |
-| `npm run build` | TypeScript and production build pass; globe and shared content chunk-size warnings, see follow-ups |
-| `npm run test:e2e` | Full run: 71/72 passed, with one mobile test needing to close the new settings panel before using the map. Final corrected run: all 28 discovery and mobile atlas checks pass, including 16 discovery checks, keyboard/focus, axe and 320px layout. |
+| `npm test` | 13 files, 59 tests passed |
+| `npm run build` | passes; `prerender: 329 pages, 329 share images, 327 in sitemap.xml`. The shared content chunk (now named after `DevilFruits`, about 693 kB / 239 kB gzip) and `GlobeView` (about 530 kB / 135 kB gzip) still exceed the 400 kB warning |
+| `npm run test:e2e` | 100/100 passed, desktop Chrome and Pixel 7. Two timing-heavy tests (the Laboon battle clock, the atlas chart) have each failed once under full local parallel load and pass alone; CI is green |
 
 Playwright runs against the built output through the preview server, so **rebuild before running end-to-end tests** or you will test a stale `dist`.
 
@@ -58,6 +65,34 @@ Desktop and mobile screenshots were inspected interactively; runtime logs were c
 
 Further feature ideas—history timeline, quizzes, notes and recaps—remain outside this implementation. Plan and spec are in `docs/superpowers/`.
 
+## Growth round, 21 October
+
+Why: the site could not be found or shared. Every URL returned the same title and description, there were no Open Graph tags, and `robots.txt` and `sitemap.xml` were the app shell. The edition had also fallen five chapters behind.
+
+- **Path routing.** `src/state.ts` encodes `/arc/wano/?beat=…`, `/character/luffy/`, `/crew/` and so on.
+  - Detail URLs keep the view they opened from as `?view=`.
+  - `decodeRoute` takes `pathname + search` and still reads the old query-only links. `App.tsx` rewrites those to their path on load, keeping the atlas's `mapPlace`.
+  - Every path ends in a slash, because Netlify 301s `/arc/wano` to `/arc/wano/` once `arc/wano/index.html` exists (checked on the deploy preview).
+- **Prerendering.** `scripts/prerender.ts` runs after `vite build` and writes a page for every arc, place, character, crew, fruit and view, plus `sitemap.xml` and `robots.txt`.
+  - Each page has its own title, description, canonical link, Open Graph and Twitter tags, JSON-LD breadcrumbs, and a static readable summary with real links.
+  - `public/spoiler-guard.js` hides that summary before first paint for readers who limit spoilers.
+  - Share images come from `scripts/og/cards.tsx`, drawn with the site's own art: pixel scenes, recipe portraits, fruit icons and the 5×7 bitmap font in `src/art/pixel-font.ts`, so no font files are needed.
+  - Character and fruit images name only what a first-time reader would know.
+- **Portrait refactor.** The recipe language moved to `src/components/portrait-recipe.ts` and the drawing to `PortraitSvg.tsx`, with literal colour fallbacks so it renders without `crews.css`. Before/after screenshots of the crew page, a dossier and an arc were pixel-identical.
+- **Chapter refresh to 1196**, through the skill. Three new Elbaf beats (`dawn-thor-bullet`, `still-practicing`, `self-love`) and two new battles (`zoro-vs-sommers`, `sanji-vs-killingham`). `luffy-hajrudin-loki-vs-imu` now runs to 1193. Prose no longer writes the cutoff chapter number.
+- **Bounty Board** (`/bounties/`). 61 sourced bounties for 39 supporting profiles live in `src/data/bounties.ts`; there are now 99 in all. One `bountyChapter()` parser replaces three copies, and the validator checks amounts and chapter order. `StepChart.tsx` draws the growth and crew-total charts, with crosshairs, a table view and validated categorical colours.
+- **Devil Fruit encyclopedia** (`/devil-fruits/`, `/fruit/<id>/`). 56 fruits in `src/data/devil-fruits.ts`.
+  - Reveal chapter, users in story order, awakenings and true identities, each gated separately by `fruitsAtProgress()`.
+  - A new detail kind (`fruit`), with search, logbook and dossier links.
+  - Validator and refresh-audit coverage.
+- **Wanted-poster maker** (`/poster/`).
+  - Built from the recipe language, with clamped base64url share links (`src/art/poster.ts`).
+  - The PNG is downloaded through a `data:` URL and canvas, both allowed by the CSP. It can start from a dossier (`?from=<id>`).
+- **Tooling and tests.**
+  - `npm run capture` re-shoots the README screenshots, records the animated `demo.webp` and draws `docs/social-preview.png`. ffmpeg only decodes frames; sharp assembles the WebP.
+  - New e2e specs: `seo`, `bounties`, `devil-fruits` and `poster`.
+  - The Laboon battle test now scrolls the stage, not the button, into view; it had failed on CI since 8 September.
+
 ## Content inventory
 
 | File | Arcs | Chapters |
@@ -67,7 +102,7 @@ Further feature ideas—history timeline, quizzes, notes and recaps—remain out
 | `arcs-paradise.ts` | 7 | 218–489 |
 | `arcs-summit-war.ts` | 6 | 490–602 |
 | `arcs-new-world.ts` | 8 | 603–1125 |
-| `arcs-elbaf.ts` | 1 | 1126–1191, ongoing |
+| `arcs-elbaf.ts` | 1 | 1126–1196, ongoing |
 
 Each has a matching `staging-*.ts`. `staging.ts` merges them and `crew-roster.ts` derives who was aboard and which bounties were posted.
 
@@ -93,21 +128,31 @@ Each has a matching `staging-*.ts`. `staging.ts` merges them and `crew-roster.ts
 
 **Art.** `god-valley` has no scene alias in `PixelScene.tsx`, so it falls back to the night "mystery" scene, and no canonical position. The globe deliberately leaves it unplaced, with its field notes available in the searchable list. The flat chart treats its placement as narrative geography. Several settlements reuse their island's art.
 
-**Screenshots.** `docs/screenshots/journey.webp` and `arc-title-card.webp` show the chapter numbers, so they go stale on a refresh. There is no capture script; they were taken by hand.
+**Screenshots.** `journey.webp`, `arc-title-card.webp`, `mobile-arc.webp` and `demo.webp` show edition facts and go stale on every refresh. Re-shoot them with `npm run build && npm run capture`. The other screenshots are still hand-taken and only change with the UI.
 
 **Reader.** Cast galleries on the largest arcs run long: Wano 22, Egghead 22, Elbaf 26, Marineford 17. Trim the non-crew entries if the section feels heavy.
 
-**Bundle.** Two chunks exceed the 400 kB warning limit: shared content/crews at about 672 kB (232 kB gzip) and `GlobeView` at about 543 kB (140 kB gzip). The main chunk is about 294 kB (92 kB gzip). Discovery and detail views share the larger content chunk; further content splitting remains a performance follow-up.
+**Bundle.** Two chunks exceed the 400 kB warning limit: the shared content chunk at about 693 kB (239 kB gzip), now named after `DevilFruits`, and `GlobeView` at about 530 kB (135 kB gzip). The main chunk is about 290 kB (90 kB gzip). Discovery and detail views share the larger content chunk; further content splitting remains a performance follow-up.
 
 **Globe and fleet update.** The world atlas now defaults to a rotatable Three.js globe with 3D landmarks, globe routes, region flights, responsive label density, and a flat-chart fallback. Crew discovery now includes 42 pirate crews, four factions, and 113 character profiles with original animated SVG portraits. Crew and character records share the existing overlay/history and logbook. The registry has a separate content horizon (`crewCoverageThrough`); its concise supporting profiles are not the same editorial coverage as the full arc reader. Maintenance instructions are in `docs/ATLAS-MAINTENANCE.md`.
+
+**Research gaps.**
+- Bounties are left out where the only source is a databook, Vivre Card, film or novel: Marco, King, Ace's 550M, Sabo, Shanks' 1,040M and others. Kaido's boyhood 70M is also out, because its reveal comes after his current bounty and the validator requires chapter order.
+- Fruits are left out when the story never names them (Imu), or when the wiki hedges (Killingham's awakening).
+- Raw extracts sit in `docs/research/bounties.json` and `devil-fruits.json`.
+
+**Links.** In-app navigation is still buttons, not anchors. The prerendered pages carry real links for crawlers, but turning the main `open`/`navigate` buttons into `<a href>` would help middle-click and crawl depth.
+
+**Social preview.** The GitHub API cannot set a repository's social image. Upload `docs/social-preview.png` under Settings → Social preview.
 
 **Local-only notes.** `docs/research/` holds the chapter-by-chapter Elbaf outline and the brief the content writers worked from. It is gitignored on purpose, since it is derived from wiki research rather than written for publication. Keep it if you plan more content work.
 
 ## Suggested next steps
 
-1. Push to GitHub. The repository is initialized with one commit on `main`; no remote is configured yet.
-2. Decide the public name. "One Piece Odyssey" matches an official Bandai Namco game title, which sits awkwardly beside the no-affiliation disclaimer. Worth a second thought before the repository becomes public.
-3. Replace the MIT copyright holder line, currently "One Piece Odyssey contributors", with a real name if you want attribution.
-4. Consider whether the takedown contact address, currently a personal Gmail in `src/data/legal.ts`, is the address you want indexed on a public site.
-5. Editorial pass over the flagged chapter boundaries above.
-6. ~~Deploy to Netlify.~~ **Done** — live at one-piece-odyssey.netlify.app. `netlify.toml` is written and its content security policy was verified against the real build: no blocked scripts, styles, fonts or images, fonts still load, the arc reader still renders. Connect the repository in Netlify, or run `npx netlify deploy --prod --dir=dist` after a build.
+1. Review and merge the growth-round pull request; Netlify deploys `main`.
+2. Upload `docs/social-preview.png` as the repository's social preview.
+3. Submit `https://one-piece-odyssey.netlify.app/sitemap.xml` in Google Search Console once it is live.
+4. Decide the public name. "One Piece Odyssey" matches an official Bandai Namco game title, which competes for the same search and sits awkwardly beside the no-affiliation disclaimer.
+5. Consider whether the takedown contact address, currently a personal Gmail in `src/data/legal.ts`, is the address you want indexed on a public site.
+6. Editorial pass over the flagged chapter boundaries above.
+7. Refresh weekly as chapters release: `npm run refresh:audit`, then the `chapter-refresh` skill.

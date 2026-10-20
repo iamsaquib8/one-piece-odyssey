@@ -29,3 +29,17 @@ Source of intent: user-provided cinematic manga explorer plan and concept art (`
 The atlas now opens as an interactive 3D globe with raised island models, Red Line terrain, Grand Line and Calm Belt waters, spherical routes, horizon-aware labels, orbit/pinch/keyboard input, region flights, zoom controls and optional automatic rotation. The searchable inspector, voyage player, saves and detailed location links work in both globe and flat-chart modes. The flat chart is also the explicit WebGL fallback. Coordinates remain schematic; unknown globe positions are omitted.
 
 The fleet registry now contains 42 pirate crews and four related factions, ordered by story relevance, with category/story filters and 113 character profiles. Original animated SVG portraits replace initials. Crew/character search, saved records and browser overlay history are connected. Supporting crew coverage is explicitly tracked separately from arc coverage. See `docs/ATLAS-MAINTENANCE.md` for authoring and validation.
+
+## Growth round, 21 October
+
+- Path URLs with legacy query support (`src/state.ts`).
+- A prerendered page, share image, sitemap and robots file for every record (`scripts/prerender.ts`, `scripts/og/`).
+- The portrait drawing split into `PortraitSvg.tsx` and `portrait-recipe.ts`.
+- A bitmap pixel font (`src/art/pixel-font.ts`).
+- Chapter refresh to 1196.
+- Bounty Board (`BountyBoard.tsx`, `StepChart.tsx`, `src/data/bounties.ts`, `bounty-board.ts`).
+- Devil Fruit encyclopedia (`DevilFruits.tsx`, `FruitIcon.tsx`, `src/data/devil-fruits.ts`, detail kind `fruit`).
+- Wanted-poster maker (`PosterMaker.tsx`, `WantedPoster.tsx`, `src/art/poster.ts`).
+- `npm run capture` for screenshots, the demo and the social preview.
+
+Design record: `docs/superpowers/specs/2026-10-21-growth-design.md`. Verification is in `docs/STATE.md`.

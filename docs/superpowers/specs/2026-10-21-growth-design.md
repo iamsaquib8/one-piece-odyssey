@@ -17,7 +17,7 @@ Fans look up three things most: characters, bounties and Devil Fruits. The site 
 
 ## What this round does
 
-The round lands as stacked pull requests, one per step, so each can be reviewed on its own.
+The round lands as one pull request with a commit per step, so each step can be reviewed on its own.
 
 1. **Repository polish.**
    - `LICENSE` is plain MIT and the rights notice moves to `NOTICE.md`.
