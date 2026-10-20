@@ -10,8 +10,10 @@
   # Vite needs devDependencies (typescript, plugin-react) at build time.
   NPM_FLAGS = "--include=dev"
 
-# Views live in query parameters, so every path serves the same document.
-# 200 rather than 301 keeps deep links such as /?arc=wano&beat=onigashima intact.
+# scripts/prerender.ts writes a real page for every arc, place, character, crew and view
+# (/arc/wano/index.html), plus sitemap.xml and robots.txt; Netlify serves those files first.
+# Anything else, including links shared before paths existed (/?arc=wano&beat=onigashima),
+# falls through to the app shell with a 200, and the app rewrites old links to their path.
 [[redirects]]
   from = "/*"
   to = "/index.html"

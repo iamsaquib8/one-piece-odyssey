@@ -44,7 +44,7 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => { input.current?.focus({ preventScroll: true }); }, []);
   useEffect(() => {
-    const t = setTimeout(() => { const next = encodeRoute({ view: 'search', ...(query.trim() ? { q: query.trim() } : {}) }); if (window.location.search !== next) history.replaceState(history.state, '', next || window.location.pathname); }, 400);
+    const t = setTimeout(() => { const next = encodeRoute({ view: 'search', ...(query.trim() ? { q: query.trim() } : {}) }); if (window.location.pathname + window.location.search !== next) history.replaceState(history.state, '', next); }, 400);
     return () => clearTimeout(t);
   }, [query]);
   const index = useMemo<Hit[]>(() => [

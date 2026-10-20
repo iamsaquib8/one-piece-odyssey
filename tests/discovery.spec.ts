@@ -45,7 +45,7 @@ test('character trails open exact moments and battles with history preserved', a
   await page.locator('.trail-card-person').click();
   await page.getByRole('button', { name: 'Character journey', exact: true }).click();
   await page.locator('.discovery-timeline-entry.is-moment').first().getByRole('button', { name: 'Open in story' }).click();
-  await expect(page).toHaveURL(/view=trails&arc=romance-dawn&beat=/);
+  await expect(page).toHaveURL(/\/arc\/romance-dawn\/\?view=trails&beat=/);
   const beat = new URL(page.url()).searchParams.get('beat');
   await expect(page.locator(`[id="beat-${beat}"]`)).toBeInViewport();
   await page.goBack();
@@ -63,7 +63,7 @@ test('mystery clues unlock by progress and open the referenced story', async ({ 
   await expect(mystery).not.toContainText('Brook');
   await mystery.locator('summary').click();
   await mystery.getByRole('button', { name: 'Open story moment' }).first().click();
-  await expect(page).toHaveURL(/view=mysteries&arc=reverse-mountain&beat=inside-the-whale/);
+  await expect(page).toHaveURL(/\/arc\/reverse-mountain\/\?view=mysteries&beat=inside-the-whale/);
   await expect(page.locator('#beat-inside-the-whale')).toBeInViewport();
   await page.getByRole('button', { name: 'Close details' }).click();
   await (await progressControl(page)).selectOption('489');

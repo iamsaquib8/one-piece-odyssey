@@ -15,7 +15,7 @@ This site narrates the One Piece manga up to a cutoff recorded in `src/data/cove
 
 - **Never guess the latest chapter number from memory.** Your training data lags the manga by months. Probe the wiki (Phase 1).
 - **Never invent story events.** Every beat traces to a fetched chapter summary. Unsure of a boundary? Widen the chapter range and record the uncertainty in `docs/STATE.md`.
-- **Never rename an existing beat or battle id.** They are deep-link targets (`?arc=elbaf&beat=god-valley`) and reading positions saved in readers' browsers. Add new ids; leave old ones alone.
+- **Never rename an existing beat or battle id.** They are deep-link targets (`/arc/elbaf/?beat=god-valley`) and reading positions saved in readers' browsers. Add new ids; leave old ones alone.
 - **Never set `editorialStatus: 'reviewed'`.** New content is `'draft'` — the `arc()` helper does this for you.
 - **Never leave the chapter number written out in a component, test or doc.** Read it from `coverage.ts`. The audit fails the refresh if you do.
 
@@ -28,7 +28,7 @@ This site narrates the One Piece manga up to a cutoff recorded in `src/data/cove
 | 3 | Decide the shape | `src/data/arcs-*.ts` | Extend the ongoing arc, or open a new one |
 | 4 | Write the story | `arcs-*.ts` + `staging-*.ts` | New beats, battles, cast, places |
 | 5 | Move the cutoff | `src/data/coverage.ts` | All five fields updated |
-| 6 | Art | `PixelScene.tsx`, `CharacterPortrait.tsx` | New places and faces have art |
+| 6 | Art | `PixelScene.tsx`, `portrait-recipe.ts` | New places and faces have art |
 | 7 | Verify | the gauntlet below | Everything green |
 | 8 | Land it | docs, screenshots, commit | Pushed, CI green |
 
@@ -86,7 +86,7 @@ Update all five fields of `src/data/coverage.ts`: `verifiedDate` (today's real d
 ### Phase 6 — Art
 
 - New island? Add an alias or scene kind in `src/components/PixelScene.tsx`. A location id containing an existing island's name inherits its art; anything unmatched falls back to a night "mystery" scene, so check what yours resolves to.
-- New named character? Add a recipe to `RECIPES` in `src/components/CharacterPortrait.tsx`. Unlisted ids get a deterministic generated portrait, which is acceptable but plainer.
+- New named character? Add a recipe to `RECIPES` in `src/components/portrait-recipe.ts`. Unlisted ids get a deterministic generated portrait, which is acceptable but plainer.
 - New place on an existing island? Add it to the `parents` map in `src/components/atlas-model.ts`, or it floats loose on the world chart instead of clustering with its island.
 
 ### Phase 7 — Verify
@@ -110,7 +110,7 @@ Then look at the result in a browser — at minimum the new beats in the arc rea
 
 - Update `docs/STATE.md` — paste the **actual** output of the commands you just ran into the verification table, not the old numbers with the chapter changed. Also the content inventory row and any new editorial uncertainty. Then `docs/IMPLEMENTATION.md`.
 - Counts in `README.md` and the `package.json` description come from the audit's CONTENT line. The audit fails if they drift.
-- Re-shoot `docs/screenshots/journey.webp`, which renders the footer and the voyage card, so it goes stale on **every** refresh. The others only if their content changed.
+- Re-shoot the screenshots with `npm run build && npm run capture`. It rewrites `journey.webp`, `arc-title-card.webp`, `mobile-arc.webp` and the animated `demo.webp`, which show the chapter numbers and so go stale on **every** refresh. The others only change with the UI.
 - Leave `docs/superpowers/specs/` alone. Those are dated design records, not living documents.
 - Commit, push, let CI run. Netlify deploys `main` on its own.
 

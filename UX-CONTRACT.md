@@ -21,7 +21,7 @@ Visual contract: [DESIGN.md](DESIGN.md). The user plan owns scope.
 | Battle playback | BattlePlayer + battle-timeline.ts | One seekable clock drives all scene layers. Stage button plays/pauses; arrows step to readable key poses, Home/End seek to boundaries. Native labeled range provides scrubbing; shared paper buttons select 0.5×/1×/1.5× speed. Pausing preserves time, replay resets, changing battle resets, and reduced motion disables playback while preserving scrubbing/stepping and all story text. Authored Laboon directions coexist with interpretive shared staging for other battles. |
 | Scrollbars | styles.css | Global thumb, track, hover, forced-colors defaults; visible and operable. |
 | Feedback | App live region | Save/explore announcements, no native alert/confirm. State reflected on button. |
-| Legal | ExplorerViews | Disclaimer, editorial position, terms, privacy and sources at `?view=legal`. Reachable from the footer only, never the main or bottom navigation. Footer entries jump to their section; the anchor retries while the lazy chunk mounts. |
+| Legal | ExplorerViews | Disclaimer, editorial position, terms, privacy and sources at `/legal/`. Reachable from the footer only, never the main or bottom navigation. Footer entries jump to their section; the anchor retries while the lazy chunk mounts. |
 | Footer | App | Four columns (identity, explore, edition, legal) over a copyright bar; single stack of paired columns at 760px. States publication cutoff, spoiler scope and schematic-map caveat on every view. |
 | World | WorldView | Labeled schematic topology (x stretched piecewise, Red Line at 70%), zoom 1–3× tweened, drag to pan when zoomed, searchable location list; minor labels appear from 1.5×. |
 

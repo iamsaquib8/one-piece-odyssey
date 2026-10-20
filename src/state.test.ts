@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeReader, readReader, saveReader, decodeRoute, encodeRoute, toggleItem } from './state';
+import { decodeReader, readReader, saveReader, decodeRoute, encodeRoute, toggleItem, isLegacyUrl, canonicalUrl } from './state';
 describe('device-local logbook', () => {
   it('preserves old saves and defaults existing readers to the full edition', () => {
     const reader = decodeReader('{"version":1,"saved":["arc:wano"],"explored":["romance-dawn"]}');
@@ -45,7 +45,26 @@ describe('shareable navigation', () => {
     expect(decodeRoute('?view=garbage&location=missing')).toEqual({view:'journey', kind:'location', id:'missing'});
   });
   it('round-trips the legal view so terms and disclaimer stay linkable', () => {
-    expect(decodeRoute('?view=legal')).toEqual({view:'legal'});
-    expect(encodeRoute({view:'legal'})).toBe('?view=legal');
+    expect(decodeRoute('/legal/')).toEqual({view:'legal'});
+    expect(encodeRoute({view:'legal'})).toBe('/legal/');
+  });
+  it('gives every record and view its own path', () => {
+    expect(encodeRoute({view:'journey'})).toBe('/');
+    expect(encodeRoute({view:'journey', kind:'arc', id:'wano', beat:'onigashima'})).toBe('/arc/wano/?beat=onigashima');
+    expect(encodeRoute({view:'trails', kind:'character', id:'luffy'})).toBe('/character/luffy/?view=trails');
+    expect(encodeRoute({view:'crew'})).toBe('/crew/');
+    expect(decodeRoute('/crew/red-hair')).toEqual({view:'journey', kind:'crew', id:'red-hair'});
+    expect(decodeRoute('/crew')).toEqual({view:'crew'});
+  });
+  it('falls back to the journey for paths it does not know', () => {
+    for (const url of ['/arc', '/nowhere/', '/arc/wano/extra', '/view/crew']) expect(decodeRoute(url)).toEqual({view:'journey'});
+  });
+  it('still opens links shared before paths existed, and rewrites them', () => {
+    expect(decodeRoute('/?view=world&arc=alabasta&beat=rain-returns')).toEqual({view:'world', kind:'arc', id:'alabasta', beat:'rain-returns'});
+    expect(isLegacyUrl('/?arc=wano')).toBe(true);
+    expect(isLegacyUrl('/arc/wano/')).toBe(false);
+    expect(isLegacyUrl('/?mapPlace=egghead')).toBe(false);
+    expect(canonicalUrl('/?view=mysteries')).toBe('/mysteries/');
+    expect(canonicalUrl('/?view=world&mapPlace=egghead')).toBe('/world/?mapPlace=egghead');
   });
 });

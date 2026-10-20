@@ -19,7 +19,7 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && tsx scripts/prerender.ts",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:e2e": "playwright test",
@@ -30,7 +30,8 @@
     "prebuild": "npm run index",
     "pretest": "npm run index",
     "pretest:e2e": "npm run index",
-    "refresh:audit": "tsx scripts/refresh-audit.ts"
+    "refresh:audit": "tsx scripts/refresh-audit.ts",
+    "capture": "tsx scripts/capture.ts"
   },
   "dependencies": {
     "@fontsource/nunito-sans": "^5.2.6",

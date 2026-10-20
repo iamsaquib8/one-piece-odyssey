@@ -15,7 +15,7 @@ Everything you see is drawn in code. There are no manga panels, scans or transla
 
 > **Reading progress:** full manga spoilers are shown by default. Use “I’ve read through” to limit discovery to completed arcs. The setting stays in your browser; shared links cannot raise it.
 
-![The journey page](docs/screenshots/journey.webp)
+![Scrolling the voyage and opening an arc](docs/screenshots/demo.webp)
 
 ## What it does
 
@@ -52,13 +52,14 @@ npm run dev        # http://localhost:5173
 | Script | What it does |
 |---|---|
 | `npm run dev` | Vite dev server |
-| `npm run build` | Type-check with project references, then build to `dist/` |
+| `npm run build` | Type-check with project references, build to `dist/`, then prerender every page, share image, sitemap and robots file |
 | `npm run preview` | Serve the built output |
 | `npm run validate` | Referential integrity for all content: ids, chapter continuity, staging, coverage |
 | `npm test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright tests on desktop Chrome and Pixel 7, including axe |
 | `npm run typecheck` | `tsc -b` on its own |
 | `npm run index` | Regenerate `src/data/index.generated.ts` |
+| `npm run capture` | Re-shoot the README screenshots and animated demo from `dist/` (needs ffmpeg) |
 
 ## How it is put together
 
@@ -79,12 +80,17 @@ src/
       NextStop.tsx     Previous and next arc
     PixelScene.tsx     Every island, drawn as SVG pixel art
     CharacterPortrait.tsx  Animated portraits from a recipe per character
+    PortraitSvg.tsx    The portrait drawing, shared with share images and posters
+    portrait-recipe.ts The recipe language and every character's recipe
     WorldAtlas.tsx     Schematic chart, globe, voyage player
     DetailOverlay.tsx  The one dialog, lazy loaded
   data/                All content (see below)
 scripts/
   validate.ts          Content integrity gate
   build-index.ts       Generates the light journey index
+  prerender.ts         A real page and share image for every record
+  og/cards.tsx         Share-image layouts drawn from the code art
+  capture.ts           README screenshots and demo
 tests/                 Playwright specs
 docs/                  Design ledger, specs, screenshots, concept art
 ```
@@ -104,7 +110,7 @@ Story text and stage directions are kept apart, so the reader can render portrai
 
 ## Art
 
-No bitmaps ship with the story. Islands are SVG pixel scenes chosen per location in `PixelScene.tsx`, and character portraits are assembled from a small recipe language (hair, hat, scar, effect) in `CharacterPortrait.tsx`, with a deterministic fallback for anyone without a hand-written recipe. The only raster asset is the hero illustration.
+No bitmaps ship with the story. Islands are SVG pixel scenes chosen per location in `PixelScene.tsx`, and character portraits are assembled from a small recipe language (hair, hat, scar, effect) in `portrait-recipe.ts`, with a deterministic fallback for anyone without a hand-written recipe. The only raster asset is the hero illustration.
 
 ## Accessibility and motion
 
@@ -128,7 +134,8 @@ Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)
 
 The config also sets the pieces a static site still needs:
 
-- Every path serves `index.html` with a 200, so deep links like `/?arc=wano&beat=onigashima` survive a cold load.
+- Every arc, place, character, crew and view has a real page (`/arc/wano/`), written after the Vite build by `scripts/prerender.ts` with its own title, description, Open Graph tags, JSON-LD and a share image drawn from the same code art. `sitemap.xml` and `robots.txt` are generated alongside.
+- Any other path serves `index.html` with a 200. Links shared before paths existed, like `/?arc=wano&beat=onigashima`, still open and are rewritten to their path.
 - A content security policy that allows only this origin. There are no third-party scripts, no analytics and no outbound requests, so nothing needs an exception beyond inline style attributes, which the animation library sets.
 - Fingerprinted assets under `/assets` cached for a year.
 

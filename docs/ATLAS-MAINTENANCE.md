@@ -17,9 +17,9 @@ The 3D bundle loads only when globe view is requested. Rendering is demand-drive
 
 `src/data/crews.ts` owns groups, relevance, arc relationships, sources and `crewCoverageThrough` (1126). `other-characters.ts` adds supporting profiles to the original Straw Hat data. `all-characters.ts` is the unified detail/search lookup. Keep the Straw Hat-only roster logic in `crew-roster.ts` separate: expanding that input would wrongly put rivals aboard Luffy's ship.
 
-To add a group, create a stable crew ID, register key members, add a first-appearance value, source the chapter references, and add portrait recipes in `CharacterPortrait.tsx`. Use `factions` for non-pirate organizations. Membership may include former members, and profiles must say so. Relevance is an editorial reading order, not a strength score. The broader manga reader has a different coverage horizon; advance the crew horizon only after reviewing its records.
+To add a group, create a stable crew ID, register key members, add a first-appearance value, source the chapter references, and add portrait recipes in `portrait-recipe.ts`. Use `factions` for non-pirate organizations. Membership may include former members, and profiles must say so. Relevance is an editorial reading order, not a strength score. The broader manga reader has a different coverage horizon; advance the crew horizon only after reviewing its records.
 
-Links use `?view=crew&crew=red-hair`, `?character=shanks`, and `?view=world&mapPlace=egghead`. Saves use `crew:<id>`, alongside existing arc/location/character keys. Never rename an ID without migrating saved and shared links.
+Links use `/crew/red-hair/?view=crew`, `/character/shanks/`, and `/world/?mapPlace=egghead`; the older query forms still open and are rewritten. Saves use `crew:<id>`, alongside existing arc/location/character keys. Never rename an ID without migrating saved and shared links.
 
 ## Verification
 

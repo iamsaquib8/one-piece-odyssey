@@ -46,7 +46,7 @@ Facts should be checkable against the manga. If you are unsure of an exact chapt
 ## Adding art
 
 - **Islands:** add a scene kind or an alias in `src/components/PixelScene.tsx`. Location ids resolve through that alias list, so an id containing an existing island name inherits its look.
-- **Characters:** add a recipe to `RECIPES` in `src/components/CharacterPortrait.tsx`. Anyone without one still renders through the deterministic fallback.
+- **Characters:** add a recipe to `RECIPES` in `src/components/portrait-recipe.ts`. Anyone without one still renders through the deterministic fallback.
 
 ## Code conventions
 

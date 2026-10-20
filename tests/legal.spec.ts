@@ -19,7 +19,7 @@ test.describe('Notices', () => {
   test('a footer notice opens the legal view at that section and is linkable', async ({ page }) => {
     await page.goto('/');
     await page.locator('.site-footer').getByRole('button', { name: 'Privacy', exact: true }).click();
-    await expect(page).toHaveURL(/\?view=legal/);
+    await expect(page).toHaveURL(/\/legal\//);
     await expect(page.getByRole('heading', { name: 'Disclaimer & terms' })).toBeVisible();
     await expect(page.locator('#legal-privacy')).toBeInViewport();
   });
