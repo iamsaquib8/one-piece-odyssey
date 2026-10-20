@@ -24,7 +24,8 @@ import { buildBountyBoard } from '../src/data/bounty-board';
 import { coverage } from '../src/data/coverage';
 import { encodeRoute } from '../src/state';
 import type { Route } from '../src/types';
-import { crewRowCard, plainCard, posterCard, sceneCard } from './og/cards';
+import { crewRowCard, fruitCard, plainCard, posterCard, sceneCard } from './og/cards';
+import { devilFruits, fruitTypeLabel } from '../src/data/devil-fruits';
 import { characters as strawHats } from '../src/data/characters';
 
 const SITE = (process.env.SITE_URL || 'https://one-piece-odyssey.netlify.app').replace(/\/$/, '');
@@ -74,7 +75,7 @@ interface Page {
 
 const nav = `<nav aria-label="Sections">${[
   link({ view: 'journey' }, 'Journey'), link({ view: 'world' }, 'World atlas'), link({ view: 'crew' }, 'Crews'),
-  link({ view: 'trails' }, 'Character trails'), link({ view: 'mysteries' }, 'Mysteries'), link({ view: 'bounties' }, 'Bounties'),
+  link({ view: 'trails' }, 'Character trails'), link({ view: 'mysteries' }, 'Mysteries'), link({ view: 'bounties' }, 'Bounties'), link({ view: 'devil-fruits' }, 'Devil Fruits'),
 ].join(' · ')}</nav>`;
 const footer = `<footer><p>ONE PIECE © Eiichiro Oda / Shueisha. ${NAME} is an independent, non-commercial fan project. Story summaries are original writing; art is drawn in code. Narrated through chapter ${coverage.coveredThrough}.</p></footer>`;
 
@@ -161,6 +162,26 @@ for (const group of crews) {
   });
 }
 
+/* ------------------------------------------------------------- devil fruits */
+for (const f of devilFruits) {
+  const shown = f.trueIdentity;
+  const type = fruitTypeLabel(shown?.type ?? f.type);
+  pages.push({
+    route: { view: 'journey', kind: 'fruit', id: f.id },
+    // Titles and headings use the name the fruit is first revealed under, so search results do not spoil a later identity.
+    title: `${f.name} (${f.romaji}) — Devil Fruit | ${NAME}`,
+    description: clip(`${f.romaji}, a ${fruitTypeLabel(f.type)} Devil Fruit. ${f.power}`),
+    heading: f.name,
+    body: `<p><strong>${esc(fruitTypeLabel(f.type))} · ${esc(f.romaji)}${f.meaning ? ` · “${esc(f.meaning)}”` : ''}</strong></p>${shown ? `<p>In chapter ${shown.chapter} it is revealed to be the ${esc(shown.name)}, a ${esc(type)}.</p>` : ''}<p>${esc(f.power)}</p>
+      <p>First revealed in chapter ${f.revealChapter}, during ${link({ view: 'journey', kind: 'arc', id: f.arcId }, arcName(f.arcId))}.</p>
+      ${section('Who has held it', list(f.users.map((u) => `${u.characterId && characterById.has(u.characterId) ? link({ view: 'journey', kind: 'character', id: u.characterId }, u.name) : esc(u.name)} <small>from chapter ${u.from}${u.until ? `, until ${u.until}` : ''}</small>`)))}
+      ${section('Awakening', list((f.awakened ?? []).map((a) => `${esc(characterById.get(a.characterId)?.name ?? a.characterId)}, chapter ${a.chapter}`)))}`,
+    // The share image names the fruit as first revealed, so a link preview never spoils its true identity.
+    image: { path: `og/fruit/${f.id}.png`, alt: `The ${f.name}, drawn in code`, svg: () => fruitCard({ id: f.id, type: f.type, eyebrow: fruitTypeLabel(f.type), title: f.name, subtitle: f.romaji }) },
+    crumbs: [{ name: 'Devil Fruits', route: { view: 'devil-fruits' } }, { name: f.name, route: { view: 'journey', kind: 'fruit', id: f.id } }],
+  });
+}
+
 /* ------------------------------------------------------------------- views */
 const sagaList = sagas.map((s) => {
   const inSaga = arcs.filter((a) => a.sagaId === s.id);
@@ -186,6 +207,7 @@ pages.push(
   view({ view: 'trails' }, 'Character trails', 'Discover', 'Follow a character through the story: chronological moments, battles and bounty changes.', list(allCharacters.map((c) => link({ view: 'journey', kind: 'character', id: c.id }, c.name)))),
   view({ view: 'mysteries' }, 'Mystery board', 'Discover', "Source-linked questions whose clues unlock with your reading progress.", list(buildMysteries(null).map((m) => esc(m.question)))),
   view({ view: 'bounties' }, 'Bounty board', 'Discover', 'Every bounty the One Piece story has posted, ranked by latest figure, with how each one grew chapter by chapter.', `<ol>${buildBountyBoard(allCharacters).map((r) => `<li>${link({ view: 'journey', kind: 'character', id: r.character.id }, r.character.name)}: ฿${esc(r.current.amount)} <small>(${esc(r.current.label)}, Ch. ${r.current.chapter})</small></li>`).join('')}</ol>`),
+  view({ view: 'devil-fruits' }, 'Devil Fruit encyclopedia', 'Discover', 'Every Devil Fruit eaten by a profiled character, and every one named on Elbaf: what it does, who has held it, and when it awakened.', list(devilFruits.map((f) => link({ view: 'journey', kind: 'fruit', id: f.id }, `${f.name} (${f.romaji})`)))),
   view({ view: 'legal' }, 'Disclaimer and terms', 'Notices', 'Rights, privacy and contact details for this non-commercial fan project.', ''),
   view({ view: 'search' }, 'Search', 'Search', 'Search arcs, places, characters and crews.', '', false),
   view({ view: 'saved' }, 'Your logbook', 'Logbook', 'Arcs and places you saved, kept in your own browser.', '', false),

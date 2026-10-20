@@ -7,6 +7,7 @@ import { allCharacters } from '../src/data/all-characters';
 import { coverage } from '../src/data/coverage';
 import { stagings } from '../src/data/staging';
 import { bountyChapter, supportingBounties } from '../src/data/bounties';
+import { devilFruits, FRUIT_TYPES } from '../src/data/devil-fruits';
 
 const problems: string[] = [];
 const ids = <T extends { id: string }>(list: T[], label: string) => { const seen = new Set<string>(); for (const x of list) { if (seen.has(x.id)) problems.push(`${label}: duplicate id ${x.id}`); seen.add(x.id); } return seen; };
@@ -91,6 +92,26 @@ for (const c of allCharacters) {
   }
 }
 
-const summary = `${arcs.length} arcs · ${arcs.reduce((n, a) => n + a.beats.length, 0)} beats · ${arcs.reduce((n, a) => n + a.battles.length, 0)} battles · ${locations.length} locations · ${allCharacters.length} character profiles · ${bountyCount} bounties · ${crews.length} crews/factions · ${connections.length} connections · ${stagings.reduce((n, s) => n + s.cast.length, 0)} cast entries · coverage Ch. 1–${coverage.coveredThrough}`;
+// Devil Fruits gate on their own chapters, so each one has to land inside the edition and inside
+// the arc it links to, and every user it names must resolve to a profile when it claims one.
+ids(devilFruits, 'devil fruits');
+const fruitTypes = new Set(FRUIT_TYPES.map((t) => t.id));
+for (const f of devilFruits) {
+  const arc = arcs.find((a) => a.id === f.arcId);
+  if (!arc) problems.push(`fruit ${f.id}: unknown arc ${f.arcId}`);
+  else if (f.revealChapter < arc.chapters[0] || f.revealChapter > arc.chapters[1]) problems.push(`fruit ${f.id}: revealed in chapter ${f.revealChapter}, outside ${f.arcId}`);
+  if (!fruitTypes.has(f.type)) problems.push(`fruit ${f.id}: unknown type ${f.type}`);
+  if (f.power.length < 40 || f.power.length > 260) problems.push(`fruit ${f.id}: power description is ${f.power.length} characters; keep it 40–260`);
+  if (!f.users.length) problems.push(`fruit ${f.id}: no users`);
+  for (const u of f.users) {
+    if (u.characterId && !profileIds.has(u.characterId)) problems.push(`fruit ${f.id}: unknown user ${u.characterId}`);
+    if (u.from > coverage.coveredThrough || (u.until ?? 0) > coverage.coveredThrough) problems.push(`fruit ${f.id}: user ${u.name} cites a chapter past the cutoff`);
+    if (u.until !== undefined && u.until < u.from) problems.push(`fruit ${f.id}: user ${u.name} loses the fruit before gaining it`);
+  }
+  for (const a of f.awakened ?? []) if (!profileIds.has(a.characterId) || a.chapter > coverage.coveredThrough) problems.push(`fruit ${f.id}: awakening ${a.characterId} at ${a.chapter} does not resolve`);
+  if (f.trueIdentity && (f.trueIdentity.chapter > coverage.coveredThrough || !fruitTypes.has(f.trueIdentity.type))) problems.push(`fruit ${f.id}: true identity does not resolve`);
+}
+
+const summary = `${arcs.length} arcs · ${arcs.reduce((n, a) => n + a.beats.length, 0)} beats · ${arcs.reduce((n, a) => n + a.battles.length, 0)} battles · ${locations.length} locations · ${allCharacters.length} character profiles · ${bountyCount} bounties · ${devilFruits.length} Devil Fruits · ${crews.length} crews/factions · ${connections.length} connections · ${stagings.reduce((n, s) => n + s.cast.length, 0)} cast entries · coverage Ch. 1–${coverage.coveredThrough}`;
 if (problems.length) { console.error(`✗ ${problems.length} content problems\n` + problems.map((p) => `  - ${p}`).join('\n')); console.error(summary); process.exit(1); }
 console.log(`✓ content edition is consistent\n${summary}`);

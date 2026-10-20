@@ -16,8 +16,8 @@ export function decodeReader(raw:string|null):ReaderState{
 export function readReader(storage:Pick<Storage,'getItem'>):ReaderState{try{return decodeReader(storage.getItem(STORAGE_KEY));}catch{return defaults();}}
 export function saveReader(storage:Pick<Storage,'setItem'>,state:ReaderState):boolean{try{storage.setItem(STORAGE_KEY,JSON.stringify(state));return true;}catch{return false;}}
 export function toggleItem(items:string[],id:string):string[]{return items.includes(id)?items.filter(x=>x!==id):[...items,id];}
-const views:View[]=['journey','world','search','saved','crew','legal','trails','mysteries','bounties'];
-const kinds=['arc','location','character','crew'] as const;
+const views:View[]=['journey','world','search','saved','crew','legal','trails','mysteries','bounties','devil-fruits'];
+const kinds=['arc','location','character','crew','fruit'] as const;
 const isView=(value:string|null|undefined):value is View=>views.includes(value as View);
 const isKind=(value:string|null|undefined):value is NonNullable<Route['kind']>=>(kinds as readonly string[]).includes(value as string);
 const segment=(value:string)=>{try{return decodeURIComponent(value);}catch{return value;}};

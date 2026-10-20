@@ -7,6 +7,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { PixelScene } from '../../src/components/PixelScene';
 import { PortraitSvg } from '../../src/components/PortraitSvg';
 import { recipeFor } from '../../src/components/portrait-recipe';
+import FruitIcon from '../../src/components/FruitIcon';
+import type { FruitType } from '../../src/data/devil-fruits';
 import { pixelText, wrapPixelText } from '../../src/art/pixel-font';
 
 export const W = 1200;
@@ -100,6 +102,21 @@ export function crewRowCard(o: { eyebrow: string; title: string; subtitle?: stri
     ${text(o.eyebrow.toUpperCase(), 56, 100, 4, GOLD)}${title.svg}
     ${o.subtitle ? block(o.subtitle, 56, 150 + title.height + 30, W - 112, 4, 3, PAPER_2, 2).svg : ''}
     ${row.map((p, i) => portrait(p.id, p.color, left + i * (size + gap), 470, size)).join('')}`);
+}
+
+/** A Devil Fruit on a pedestal of paper. */
+export function fruitCard(o: { id: string; type: FruitType; eyebrow: string; title: string; subtitle?: string }) {
+  const icon = renderToStaticMarkup(<FruitIcon id={o.id} type={o.type} />).replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" x="70" y="95" width="420" height="420" `);
+  const title = block(o.title, 540, 236, 600, 8, 5, INK, 3);
+  return frame(`<rect width="${W}" height="${H}" fill="${PAPER_2}"/>${scanlines}
+    <rect x="28" y="28" width="${W - 56}" height="${H - 56}" fill="none" stroke="${INK}" stroke-width="6"/>
+    <circle cx="280" cy="315" r="230" fill="${PAPER}" stroke="${INK}" stroke-width="5"/>
+    ${icon}
+    ${text('DEVIL FRUIT', 540, 120, 8, INK)}
+    ${text(o.eyebrow.toUpperCase(), 544, 202, 3, CORAL)}
+    ${title.svg}
+    ${o.subtitle ? block(o.subtitle, 544, 236 + title.height + 28, 600, 3, 3, INK, 2).svg : ''}
+    ${mark(INK)}`);
 }
 
 export const escapeXml = esc;

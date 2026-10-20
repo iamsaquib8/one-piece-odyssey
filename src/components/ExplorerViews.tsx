@@ -2,8 +2,9 @@ import { useReaderCatalog } from '../data/reader-catalog';
 import { useReadingHorizon } from '../reading-horizon';
 import DiscoveryViews from './DiscoveryViews';
 import BountyBoard from './BountyBoard';
+import DevilFruitsView from './DevilFruits';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
+import { Cherry, ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
 import { sagas as allSagas, chapterLabel } from '../data/arc-index';
 import CrewView from './CrewView';
 import WorldAtlas from './WorldAtlas';
@@ -21,6 +22,7 @@ export default function ExplorerViews(props: Props) {
     case 'trails':
     case 'mysteries': return <DiscoveryViews view={props.view} onOpen={props.onOpen} />;
     case 'bounties': return <BountyBoard onOpen={props.onOpen} />;
+    case 'devil-fruits': return <DevilFruitsView onOpen={props.onOpen} />;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;
@@ -31,7 +33,7 @@ export default function ExplorerViews(props: Props) {
 }
 
 /* ----------------------------------------------------------------- Search */
-type Hit = { kind: 'arc' | 'location' | 'character' | 'crew' | 'saga'; id: string; title: string; subtitle: string; text: string };
+type Hit = { kind: 'arc' | 'location' | 'character' | 'crew' | 'fruit' | 'saga'; id: string; title: string; subtitle: string; text: string };
 function highlight(text: string, q: string) {
   if (!q) return text;
   const i = normalize(text).indexOf(normalize(q));
@@ -40,7 +42,7 @@ function highlight(text: string, q: string) {
 }
 function SearchView({ route, onOpen, onJumpSaga }: Props) {
   const through = useReadingHorizon();
-  const { arcs, locations, characters, crews } = useReaderCatalog();
+  const { arcs, locations, characters, crews, devilFruits } = useReaderCatalog();
   const sagas = useMemo(() => allSagas.filter(s => arcs.some(a => a.sagaId === s.id)).map(s => through === null ? s : { ...s, subtitle: '' }), [arcs, through]);
   const [query, setQuery] = useState(route.q || '');
   const input = useRef<HTMLInputElement>(null);
@@ -55,10 +57,11 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
     ...locations.map((l) => ({ kind: 'location' as const, id: l.id, title: l.name, subtitle: `${l.kind} · ${l.chapters}`, text: `${l.name} ${l.description} ${l.landmarks.join(' ')} ${l.region}` })),
     ...crews.map(c=>({kind:'crew' as const,id:c.id,title:c.name,subtitle:c.description,text:`${c.name} ${c.description} ${c.memberIds.map(id=>characters.find(p=>p.id===id)?.name||'').join(' ')}`})),
     ...characters.map((c) => ({ kind: 'character' as const, id: c.id, title: c.name, subtitle: `${c.epithet} · ${c.role}`, text: `${c.name} ${c.epithet} ${c.role} ${c.dream}` })),
-  ], [arcs, locations, characters, crews, sagas]);
+    ...devilFruits.map((f) => ({ kind: 'fruit' as const, id: f.id, title: f.trueIdentity?.name ?? f.name, subtitle: `${f.romaji} · ${f.users.map((u) => u.name).join(', ')}`, text: `${f.name} ${f.romaji} ${f.meaning} ${f.trueIdentity?.name ?? ''} ${f.users.map((u) => u.name).join(' ')}` })),
+  ], [arcs, locations, characters, crews, devilFruits, sagas]);
   const q = query.trim();
   const hits = useMemo(() => { const n = normalize(q); if (!n) return []; const words = n.split(/\s+/); return index.filter((h) => { const t = normalize(h.text); return words.every((w) => t.includes(w)); }).sort((a, b) => Number(normalize(b.title).includes(n)) - Number(normalize(a.title).includes(n))); }, [q, index]);
-  const groups: Array<[Hit['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew', 'Crews & factions'], ['character', 'Characters'], ['saga', 'Sagas']];
+  const groups: Array<[Hit['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew', 'Crews & factions'], ['character', 'Characters'], ['fruit', 'Devil Fruits'], ['saga', 'Sagas']];
   function submit(e: FormEvent) { e.preventDefault(); const first = hits[0]; if (first) activate(first); }
   function activate(h: Hit) { if (h.kind === 'saga') onJumpSaga(h.id); else onOpen(h.kind, h.id); }
   return <section className="explorer search-view" aria-labelledby="search-title">
@@ -66,19 +69,19 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
     <form noValidate className="search-form" role="search" onSubmit={submit}><Search size={20} /><input ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search manga arcs, islands, characters…" aria-label="Search the explorer" autoComplete="off" enterKeyHint="search" />{query ? <button type="button" className="clear" aria-label="Clear search" onClick={() => { setQuery(''); input.current?.focus(); }}><X size={18} /></button> : null}</form>
     {!q ? <div className="suggestions" aria-label="Suggested searches">{(through === null ? ['Alabasta', 'Going Merry', 'Water Seven', 'Nico Robin', 'Skypiea', 'Wano', 'Sanji', 'Sabaody'] : arcs.slice(0, 6).map(a => a.name)).map((s) => <button key={s} className="chip" onClick={() => setQuery(s)}><Search size={14} />{s}</button>)}</div>
       : hits.length === 0 ? <div className="empty-state"><Compass size={44} /><h2>Nothing on the chart for “{q}”.</h2><p>Try a shorter word, an island name, or a crew member. Character names use the manga’s English spellings.</p><button className="button" onClick={() => setQuery('')}>Clear the search</button></div>
-      : <div className="result-groups" aria-live="polite">{groups.map(([kind, label]) => { const items = hits.filter((h) => h.kind === kind); if (!items.length) return null; return <div className="result-group" key={kind}><h2>{kind === 'arc' ? <BookOpen size={14} /> : kind === 'location' ? <MapPin size={14} /> : kind === 'character' ? <Users size={14} /> : <Compass size={14} />}{label} · {items.length}</h2><ul>{items.map((h) => <li key={h.id}><button className="result-row" onClick={() => activate(h)}><span className="kind">{kind}</span><span><strong>{highlight(h.title, q)}</strong><small>{highlight(h.subtitle, q)}</small></span><ArrowRight size={18} /></button></li>)}</ul></div>; })}</div>}
+      : <div className="result-groups" aria-live="polite">{groups.map(([kind, label]) => { const items = hits.filter((h) => h.kind === kind); if (!items.length) return null; return <div className="result-group" key={kind}><h2>{kind === 'arc' ? <BookOpen size={14} /> : kind === 'location' ? <MapPin size={14} /> : kind === 'character' ? <Users size={14} /> : kind === 'fruit' ? <Cherry size={14} /> : <Compass size={14} />}{label} · {items.length}</h2><ul>{items.map((h) => <li key={h.id}><button className="result-row" onClick={() => activate(h)}><span className="kind">{kind}</span><span><strong>{highlight(h.title, q)}</strong><small>{highlight(h.subtitle, q)}</small></span><ArrowRight size={18} /></button></li>)}</ul></div>; })}</div>}
   </section>;
 }
 
 /* ------------------------------------------------------------------ Saved */
 function SavedView({ reader, onOpen, onNavigate }: Props) {
-  const { arcs, locations, characters, crews } = useReaderCatalog();
+  const { arcs, locations, characters, crews, devilFruits } = useReaderCatalog();
   const sagas = allSagas;
   const through = useReadingHorizon();
-  const saved = reader.saved.map((key) => { const [kind, id] = key.split(':') as [Route['kind'], string]; const rec = kind === 'arc' ? arcs.find((a) => a.id === id) : kind === 'location' ? locations.find((l) => l.id === id) : kind === 'crew' ? crews.find(c=>c.id===id) : characters.find((c) => c.id === id); return rec && kind ? { kind, id, name: rec.name, sub: kind === 'arc' ? chapterLabel(rec as (typeof arcs)[number]) : kind === 'location' ? (rec as Location).chapters : kind==='crew' ? (rec as (typeof crews)[number]).description : (rec as (typeof characters)[number]).epithet } : null; }).filter((x): x is NonNullable<typeof x> => !!x);
+  const saved = reader.saved.map((key) => { const [kind, id] = key.split(':') as [Route['kind'], string]; const rec = kind === 'arc' ? arcs.find((a) => a.id === id) : kind === 'location' ? locations.find((l) => l.id === id) : kind === 'crew' ? crews.find(c=>c.id===id) : kind === 'fruit' ? devilFruits.find((f) => f.id === id) : characters.find((c) => c.id === id); return rec && kind ? { kind, id, name: rec.name, sub: kind === 'arc' ? chapterLabel(rec as (typeof arcs)[number]) : kind === 'location' ? (rec as Location).chapters : kind==='crew' ? (rec as (typeof crews)[number]).description : kind === 'fruit' ? (rec as (typeof devilFruits)[number]).romaji : (rec as (typeof characters)[number]).epithet } : null; }).filter((x): x is NonNullable<typeof x> => !!x);
   const explored = arcs.filter((a) => reader.explored.includes(a.id));
   const pct = arcs.length ? Math.round((explored.length / arcs.length) * 100) : 0;
-  const groups: Array<[Route['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew','Crews & factions'], ['character', 'Characters']];
+  const groups: Array<[Route['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew','Crews & factions'], ['character', 'Characters'], ['fruit', 'Devil Fruits']];
   return <section className="explorer saved-view" aria-labelledby="saved-title">
     <div className="explorer-heading"><div><span className="micro">YOUR LOGBOOK · SAVED ON THIS DEVICE</span><h1 id="saved-title">Your logbook</h1><p>Saved destinations and explored arcs. Nothing leaves this browser; clearing site data starts a fresh voyage.</p></div></div>
     <div className="progress-card"><Check size={36} /><div><strong>{explored.length} of {arcs.length} arcs explored · {pct}%</strong><small>Mark an arc explored from the end of its story. Colours follow the saga.</small><div className="progress-bar" aria-hidden="true">{sagas.map((s) => { const n = explored.filter((a) => a.sagaId === s.id).length; return n ? <span key={s.id} style={{ width: `${(n / arcs.length) * 100}%`, '--saga-color': s.color } as React.CSSProperties} /> : null; })}</div></div></div>

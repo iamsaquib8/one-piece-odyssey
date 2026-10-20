@@ -9,7 +9,7 @@
 
 **[Set sail at one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)** · [Help build the bible](#help-build-the-bible) · Star the repo to follow the weekly chapter updates.
 
-An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 237 story beats, 95 battle logs and 70 places, narrated through chapter **1196**.
+An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 237 story beats, 95 battle logs, 70 places and 56 Devil Fruits, narrated through chapter **1196**.
 
 Everything you see is drawn in code. There are no manga panels, scans or translations anywhere in this repository.
 
@@ -26,6 +26,7 @@ Everything you see is drawn in code. There are no manga panels, scans or transla
 - **Crew and factions.** Wanted posters for the Straw Hats and a registry of the crews around them.
 - **Character journeys.** Search character trails and follow chronological story moments, battles and bounty changes directly into the reader.
 - **Bounty board.** Every bounty the story has posted, ranked by latest figure, with each poster dated to the chapter that shows it. Compare how up to three people's bounties grew, or follow the Straw Hats' combined total.
+- **Devil Fruit encyclopedia.** Every fruit eaten by a profiled character and every one named on Elbaf, each with a code-drawn fruit, its users in order, awakenings and later true identities. Records wait for the chapter that reveals them, so a reader early in the story still sees the Gum-Gum Fruit by that name.
 - **Mystery board.** Follow four source-linked questions; clues and resolutions unlock with your reading progress.
 - **Spoiler controls.** Limit journey stops, search, profiles, crew records, both atlas modes and discovery views. Limited mode hides portraits and biographies that lack reliable reveal boundaries. Hidden saves remain in your logbook.
 - **Your logbook.** Save arcs and places, mark arcs explored, resume where you stopped. It lives in your own browser and never leaves your device.

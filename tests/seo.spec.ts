@@ -7,7 +7,7 @@ const wano = arcs.find((a) => a.id === 'wano')!;
 
 test.describe('prerendered pages', () => {
   test('each record answers with its own title, canonical link and share image', async ({ request }) => {
-    for (const [path, title] of [['/arc/wano/', /Wano Country arc/], ['/character/luffy/', /Monkey D\. Luffy/], ['/location/water-seven/', /Water Seven/], ['/crew/', /Crews and factions/]] as const) {
+    for (const [path, title] of [['/arc/wano/', /Wano Country arc/], ['/character/luffy/', /Monkey D\. Luffy/], ['/location/water-seven/', /Water Seven/], ['/crew/', /Crews and factions/], ['/fruit/gomu-gomu/', /Gum-Gum Fruit/]] as const) {
       const html = await (await request.get(path)).text();
       const head = html.slice(0, html.indexOf('</head>'));
       expect(head).toMatch(new RegExp(`<title>[^<]*${title.source}`));
