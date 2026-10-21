@@ -1,0 +1,63 @@
+/* Bounty Board (BountyBoard.tsx) and its step charts (StepChart.tsx). */
+.bounty-hero { background: #7a3a24; }
+.bounty-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 0; padding: 24px clamp(20px, 4vw, 56px); background: var(--paper); border-bottom: 2px solid var(--ink); }
+.bounty-stats div { padding: 14px 16px; background: #fff; border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow-ink); }
+.bounty-stats dt { font-family: var(--font-utility); font-size: 9px; letter-spacing: .04em; color: var(--ink-mute); text-transform: uppercase; }
+.bounty-stats dd { display: grid; gap: 2px; margin: 8px 0 0; }
+.bounty-stats dd strong { font-size: clamp(22px, 3vw, 30px); font-weight: 900; font-style: italic; letter-spacing: -.02em; }
+.bounty-stats dd span { color: var(--ink-soft); font-size: 14px; }
+
+.bounty-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 20px; padding: 24px clamp(20px, 4vw, 56px) 8px; }
+.bounty-chart-empty { display: grid; place-items: center; min-height: 200px; padding: 24px; text-align: center; color: var(--ink-soft); background: var(--paper); border: 2px dashed var(--ink-mute); border-radius: var(--radius); }
+.step-chart { margin: 0; padding: 16px; background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow-ink); }
+.step-chart figcaption { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 8px; }
+.step-chart figcaption strong { font-size: 17px; }
+.step-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--ink-soft); }
+.step-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.step-legend span { width: 14px; height: 4px; border-radius: 2px; }
+.step-plot { position: relative; }
+.step-plot svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+.step-plot svg:focus-visible { outline: 3px solid var(--sea); outline-offset: 4px; border-radius: var(--radius); }
+.step-grid line { stroke: var(--ink); stroke-opacity: .1; }
+.step-grid text, .step-axis { fill: var(--ink-mute); font-size: 12px; font-variant-numeric: tabular-nums; }
+.step-line { fill: none; stroke-width: 2px; stroke-linejoin: round; }
+.step-area { opacity: .14; }
+.step-dot { stroke: var(--paper); stroke-width: 2px; }
+.step-label { fill: var(--ink); font-size: 13px; font-weight: 700; }
+.step-cross { stroke: var(--ink); stroke-opacity: .45; stroke-dasharray: 3 3; }
+.step-tip { position: absolute; top: 6px; z-index: 2; display: grid; gap: 4px; min-width: 150px; padding: 8px 10px; font-size: 13px; color: var(--ink); background: #fff; border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow-ink); transform: translateX(-50%); pointer-events: none; }
+.step-tip span { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 6px; }
+.step-tip i { width: 10px; height: 10px; border-radius: 50%; }
+.step-tip b { font-variant-numeric: tabular-nums; }
+.step-table { margin-top: 10px; font-size: 13px; }
+.step-table summary { cursor: pointer; color: var(--ink-soft); font-weight: 700; }
+.step-table table { width: 100%; margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.step-table th, .step-table td { padding: 4px 8px; text-align: right; border-bottom: 1px solid rgba(16, 36, 58, .12); }
+.step-table th:first-child { text-align: left; }
+
+.bounty-filters { padding-top: 16px; }
+.wanted-list { display: grid; gap: 10px; margin: 0; padding: 12px clamp(20px, 4vw, 56px) 0; list-style: none; }
+.bounty-line { display: grid; grid-template-columns: 36px minmax(0, 1fr) minmax(130px, 220px) auto; align-items: center; gap: 12px; padding: 8px 10px; background: #fff; border: 2px solid var(--ink); border-left: 6px solid var(--bounty-slot); border-radius: var(--radius); }
+.bounty-rank { font-family: var(--font-utility); font-size: 12px; text-align: center; color: var(--ink-mute); }
+.bounty-person { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 52px; padding: 0; text-align: left; color: var(--ink); background: none; border: 0; cursor: pointer; }
+.bounty-person .character-portrait { width: 44px; }
+.bounty-person strong { display: block; font-size: 16px; }
+.bounty-person small { display: block; color: var(--ink-soft); font-size: 13px; }
+.bounty-person:hover strong, .bounty-person:focus-visible strong { text-decoration: underline; }
+.bounty-amount { display: grid; gap: 6px; justify-items: end; font-variant-numeric: tabular-nums; }
+.bounty-amount strong { font-size: 16px; }
+.bounty-bar { justify-self: stretch; height: 6px; background: linear-gradient(90deg, var(--gold) var(--bounty-share), rgba(16, 36, 58, .08) var(--bounty-share)); border-radius: 3px; }
+.bounty-compare { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius); cursor: pointer; }
+.bounty-compare[aria-pressed='true'] { background: var(--gold); }
+.bounty-compare:disabled { opacity: .45; cursor: not-allowed; }
+
+@media (max-width: 700px) {
+  /* The chart scales down with its viewBox, so its text is set larger in user units to stay readable; the legend names the lines. */
+  .step-grid text, .step-axis { font-size: 24px; }
+  .step-label { display: none; }
+  .bounty-line { grid-template-columns: 28px minmax(0, 1fr) auto; }
+  .bounty-amount { grid-column: 2; justify-items: start; }
+  .bounty-compare span { display: none; }
+  .bounty-compare { grid-row: 1; grid-column: 3; }
+}
+.bounty-filters button { white-space: nowrap; }

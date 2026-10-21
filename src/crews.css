@@ -306,3 +306,4 @@ html[data-motion='on'] .fleet-card { animation-name: fleet-card-in; animation-du
 .fleet-card-heading>span { min-width:0; overflow-wrap:anywhere; }
 .detail-member>.character-portrait { flex:0 0 58px; }
 @media(max-width:620px){.fleet-grid{grid-template-columns:minmax(0,1fr)}.fleet-card-heading{grid-template-columns:68px minmax(0,1fr) 18px}.fleet-card-heading strong{overflow-wrap:anywhere}}
+.fleet-poster-cta { margin-top: 14px; }

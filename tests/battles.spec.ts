@@ -6,7 +6,8 @@ test('Laboon playback, pause, keyboard seeking and replay share one clock', asyn
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/?arc=reverse-mountain');
   const battle = page.locator('.motion-comic');
-  await battle.getByRole('button', { name: 'Play sequence', exact: true }).scrollIntoViewIfNeeded();
+  // Playback pauses when the stage leaves the viewport, so start with the stage itself in view.
+  await battle.locator('.comic-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
   await expect(battle).toHaveAttribute('data-time', '0');
   await battle.getByRole('button', { name: 'Play sequence', exact: true }).click();
   await expect.poll(async () => Number(await battle.getAttribute('data-time'))).toBeGreaterThan(250);

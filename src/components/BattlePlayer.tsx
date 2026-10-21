@@ -20,6 +20,7 @@ function BattlePlayback({ battle, motion, staging, cast, locationId }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const [speed, setSpeed] = useState(1);
   const stage = useRef<HTMLButtonElement>(null);
+  const playedAt = useRef(0);
   const clock = useRef(0);
   const stop = useRef(() => setPlaying(false)).current;
   const captionId = useId();
@@ -53,7 +54,9 @@ function BattlePlayback({ battle, motion, staging, cast, locationId }: Props) {
   useEffect(() => {
     const hidden = () => { if (document.hidden) stop(); };
     document.addEventListener('visibilitychange', hidden);
-    const observer = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) stop(); });
+    // Observer reports arrive a frame late. One measured before the latest Play press describes
+    // where the stage was before play() scrolled it back into view, so it must not stop playback.
+    const observer = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting && entry.time > playedAt.current) stop(); });
     if (stage.current) observer.observe(stage.current);
     return () => {
       document.removeEventListener('visibilitychange', hidden);
@@ -77,6 +80,7 @@ function BattlePlayback({ battle, motion, staging, cast, locationId }: Props) {
     // Controls can be reached after the art has scrolled above the reader viewport.
     // An explicit play action brings the scene back before visibility-based pausing.
     stage.current?.scrollIntoView({ behavior: 'instant', block: 'center' });
+    playedAt.current = performance.now();
     stopOther?.();
     stopOther = stop;
     if (restart || finished) { clock.current = 0; setElapsed(0); }

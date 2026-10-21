@@ -1,0 +1,41 @@
+name: Content correction
+description: A summary, chapter range, bounty or other fact is wrong or missing.
+labels: [content]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for checking the story. Please never paste manga panels, scans or translated dialogue here; describe the problem in your own words and cite chapters instead.
+  - type: input
+    id: where
+    attributes:
+      label: Where on the site
+      description: Paste the page link, or name the arc and beat (for example "Wano, Onigashima raid").
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong
+      description: Quote the sentence or number that is wrong, and say what it should be.
+    validations:
+      required: true
+  - type: input
+    id: chapters
+    attributes:
+      label: Chapter reference
+      description: The chapter or chapters that show the correct fact.
+      placeholder: "Chapter 1044"
+    validations:
+      required: true
+  - type: dropdown
+    id: spoilers
+    attributes:
+      label: Spoiler level
+      description: So others can avoid the thread if they are behind.
+      options:
+        - Before Wano
+        - Wano or later
+        - Latest chapters
+    validations:
+      required: true

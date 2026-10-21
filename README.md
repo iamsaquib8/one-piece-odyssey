@@ -1,14 +1,21 @@
 # One Piece Odyssey
 
-**[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)**
+**Every arc, island and fight of the One Piece manga as one animated voyage, and every pixel of it drawn in code. No manga panels, no scans.**
 
-An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 234 story beats, 93 battle logs and 70 places, narrated through chapter **1191**.
+[![Live site](https://img.shields.io/badge/live-one--piece--odyssey.netlify.app-087f91)](https://one-piece-odyssey.netlify.app)
+[![CI](https://github.com/iamsaquib8/one-piece-odyssey/actions/workflows/ci.yml/badge.svg)](https://github.com/iamsaquib8/one-piece-odyssey/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-ffd34e)](LICENSE)
+[![Covered through chapter 1196](https://img.shields.io/badge/covered_through-ch._1196-f45156)](src/data/coverage.ts)
+
+**[Set sail at one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)** · [Help build the bible](#help-build-the-bible) · Star the repo to follow the weekly chapter updates.
+
+An illustrated, animated fan explorer for the **One Piece** manga. Every arc from Romance Dawn to Elbaf is a stop on one continuous voyage: 33 arcs, 237 story beats, 95 battle logs, 70 places and 56 Devil Fruits, narrated through chapter **1196**.
 
 Everything you see is drawn in code. There are no manga panels, scans or translations anywhere in this repository.
 
 > **Reading progress:** full manga spoilers are shown by default. Use “I’ve read through” to limit discovery to completed arcs. The setting stays in your browser; shared links cannot raise it.
 
-![The journey page](docs/screenshots/journey.webp)
+![Scrolling the voyage and opening an arc](docs/screenshots/demo.webp)
 
 ## What it does
 
@@ -18,6 +25,9 @@ Everything you see is drawn in code. There are no manga panels, scans or transla
 - **World atlas.** A schematic chart of the world with a globe mode, layers, a voyage player and searchable field notes.
 - **Crew and factions.** Wanted posters for the Straw Hats and a registry of the crews around them.
 - **Character journeys.** Search character trails and follow chronological story moments, battles and bounty changes directly into the reader.
+- **Bounty board.** Every bounty the story has posted, ranked by latest figure, with each poster dated to the chapter that shows it. Compare how up to three people's bounties grew, or follow the Straw Hats' combined total.
+- **Devil Fruit encyclopedia.** Every fruit eaten by a profiled character and every one named on Elbaf, each with a code-drawn fruit, its users in order, awakenings and later true identities. Records wait for the chapter that reveals them, so a reader early in the story still sees the Gum-Gum Fruit by that name.
+- **Wanted-poster maker.** Build a pixel portrait from the same recipe language every character is drawn with, set your name and bounty, and download the poster as a PNG. The share link carries the whole poster; nothing is uploaded.
 - **Mystery board.** Follow four source-linked questions; clues and resolutions unlock with your reading progress.
 - **Spoiler controls.** Limit journey stops, search, profiles, crew records, both atlas modes and discovery views. Limited mode hides portraits and biographies that lack reliable reveal boundaries. Hidden saves remain in your logbook.
 - **Your logbook.** Save arcs and places, mark arcs explored, resume where you stopped. It lives in your own browser and never leaves your device.
@@ -45,13 +55,14 @@ npm run dev        # http://localhost:5173
 | Script | What it does |
 |---|---|
 | `npm run dev` | Vite dev server |
-| `npm run build` | Type-check with project references, then build to `dist/` |
+| `npm run build` | Type-check with project references, build to `dist/`, then prerender every page, share image, sitemap and robots file |
 | `npm run preview` | Serve the built output |
 | `npm run validate` | Referential integrity for all content: ids, chapter continuity, staging, coverage |
 | `npm test` | Vitest unit tests |
 | `npm run test:e2e` | Playwright tests on desktop Chrome and Pixel 7, including axe |
 | `npm run typecheck` | `tsc -b` on its own |
 | `npm run index` | Regenerate `src/data/index.generated.ts` |
+| `npm run capture` | Re-shoot the README screenshots and animated demo from `dist/` (needs ffmpeg) |
 
 ## How it is put together
 
@@ -72,12 +83,17 @@ src/
       NextStop.tsx     Previous and next arc
     PixelScene.tsx     Every island, drawn as SVG pixel art
     CharacterPortrait.tsx  Animated portraits from a recipe per character
+    PortraitSvg.tsx    The portrait drawing, shared with share images and posters
+    portrait-recipe.ts The recipe language and every character's recipe
     WorldAtlas.tsx     Schematic chart, globe, voyage player
     DetailOverlay.tsx  The one dialog, lazy loaded
   data/                All content (see below)
 scripts/
   validate.ts          Content integrity gate
   build-index.ts       Generates the light journey index
+  prerender.ts         A real page and share image for every record
+  og/cards.tsx         Share-image layouts drawn from the code art
+  capture.ts           README screenshots and demo
 tests/                 Playwright specs
 docs/                  Design ledger, specs, screenshots, concept art
 ```
@@ -97,7 +113,7 @@ Story text and stage directions are kept apart, so the reader can render portrai
 
 ## Art
 
-No bitmaps ship with the story. Islands are SVG pixel scenes chosen per location in `PixelScene.tsx`, and character portraits are assembled from a small recipe language (hair, hat, scar, effect) in `CharacterPortrait.tsx`, with a deterministic fallback for anyone without a hand-written recipe. The only raster asset is the hero illustration.
+No bitmaps ship with the story. Islands are SVG pixel scenes chosen per location in `PixelScene.tsx`, and character portraits are assembled from a small recipe language (hair, hat, scar, effect) in `portrait-recipe.ts`, with a deterministic fallback for anyone without a hand-written recipe. The only raster asset is the hero illustration.
 
 ## Accessibility and motion
 
@@ -111,7 +127,7 @@ Every summary here is original fan writing, marked `editorialStatus: 'draft'`. A
 
 **ONE PIECE © Eiichiro Oda / Shueisha.** This is an independent, non-commercial fan project with no affiliation with, endorsement by, or connection to Eiichiro Oda, Shueisha, VIZ Media, Toei Animation, or any other rights holder. All names, characters, places and story events belong to their owners. Please read the manga through its official publishers.
 
-The source code is released under the [MIT License](LICENSE). The original prose and illustrations in this repository describe a work that is not ours; do not present them as official One Piece material or resell them.
+The source code is released under the [MIT License](LICENSE). The original prose and illustrations in this repository describe a work that is not ours; [NOTICE.md](NOTICE.md) sets out what the license does not cover. Do not present any of it as official One Piece material or resell it.
 
 Rights holders who want something changed or removed: the contact address is on the site's notices page and in `src/data/legal.ts`, and requests are handled promptly.
 
@@ -121,7 +137,8 @@ Live at **[one-piece-odyssey.netlify.app](https://one-piece-odyssey.netlify.app)
 
 The config also sets the pieces a static site still needs:
 
-- Every path serves `index.html` with a 200, so deep links like `/?arc=wano&beat=onigashima` survive a cold load.
+- Every arc, place, character, crew and view has a real page (`/arc/wano/`), written after the Vite build by `scripts/prerender.ts` with its own title, description, Open Graph tags, JSON-LD and a share image drawn from the same code art. `sitemap.xml` and `robots.txt` are generated alongside.
+- Any other path serves `index.html` with a 200. Links shared before paths existed, like `/?arc=wano&beat=onigashima`, still open and are rewritten to their path.
 - A content security policy that allows only this origin. There are no third-party scripts, no analytics and no outbound requests, so nothing needs an exception beyond inline style attributes, which the animation library sets.
 - Fingerprinted assets under `/assets` cached for a year.
 
@@ -132,6 +149,14 @@ npm run build
 npx netlify deploy --prod --dir=dist
 ```
 
+## Help build the bible
+
+The aim is the most complete illustrated One Piece reference on the web, with every fact checkable against the manga. Good places to start:
+
+- **Fix a fact.** Every summary is a draft. If a chapter range or a detail is wrong, open a [content correction](https://github.com/iamsaquib8/one-piece-odyssey/issues/new?template=content-correction.yml).
+- **Draw a face.** Characters without a hand-written recipe get a generated portrait. A recipe is a dozen fields (hair, hat, scar, effect), so no art skills are needed: [request or add one](https://github.com/iamsaquib8/one-piece-odyssey/issues/new?template=portrait-recipe.yml).
+- **Pick up a starter issue.** Issues labelled [good first issue](https://github.com/iamsaquib8/one-piece-odyssey/labels/good%20first%20issue) name the files to touch and how to check your work.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `npm run validate` after touching content, keep animation behind the motion toggle, and never add manga artwork.
@@ -139,3 +164,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `npm run validate` after t
 ## Keeping up with the manga
 
 The story cutoff lives in `src/data/coverage.ts`. `npm run refresh:audit` reports how far behind the edition is and finds any place that repeats an edition fact and has drifted from it. The full procedure for pulling in newly released chapters — research, writing, art, verification — is the `chapter-refresh` skill in `.claude/skills/`.
+
+## Star history
+
+[![Star history chart](https://api.star-history.com/svg?repos=iamsaquib8/one-piece-odyssey&type=Date)](https://star-history.com/#iamsaquib8/one-piece-odyssey&Date)

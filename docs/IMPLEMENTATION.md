@@ -2,7 +2,7 @@
 
 Source of intent: user-provided cinematic manga explorer plan and concept art (`docs/concepts/journey.png`), 6 September 2026.
 
-1. Inventory and typed content — **done**. 33 arcs (Romance Dawn → Elbaf, ch. 1–1191), 234 story beats, 93 battle logs, 70 locations with art briefs, 10 crew profiles, 42 route connections, 483 staged cast entries. `npm run validate` checks referential integrity, chapter continuity and staging (every beat/battle staged, cast ids resolve, hooks ≤ 80 chars).
+1. Inventory and typed content — **done**. 33 arcs (Romance Dawn → Elbaf, ch. 1–1196), 237 story beats, 95 battle logs, 70 locations with art briefs, 10 crew profiles, 42 route connections, 486 staged cast entries. `npm run validate` checks referential integrity, chapter continuity and staging (every beat/battle staged, cast ids resolve, hooks ≤ 80 chars).
 2. Visual system and scene prototypes — **done**. `src/styles.css` owns tokens; `PixelScene` covers every location with code-native pixel art and CSS animation hooks (`.px-water`, `.px-clouds`, `.px-sun`).
 3. Detailed arc reader and battle playback — **done, rebuilt 6 Sept evening** as an illustrated log (`src/components/arc/`): parallax title card with saga wash, count-up stats and a ship crossing once; crew deck (derived from recruitment arcs) with “joins” badges; cast grouped by side with flip cards and animated portraits; voyage timeline whose gold route is drawn by scroll progress, each beat a diorama (`BeatScene`: staged location, per-beat camera, mood effects — stars, rain and lightning, sun rays, film grain — and the people present standing in the shot); versus battle cards with verdict stamps above the keyboard-steppable frame player; bounty stamps derived from bounty history; previous/next stop cards. Nav shows beat ticks that light as you read. Styles in `src/detail.css` (lazy chunk).
 4. Journey, schematic world, history, responsive navigation — **done**. Concept-matched panorama (islands two abreast, paper signboards, measured dashed route with a ship that sails to the hovered arc), World chart with tweened zoom and pan, bottom tabs on mobile.
@@ -18,7 +18,7 @@ Source of intent: user-provided cinematic manga explorer plan and concept art (`
 
 ## Known follow-ups
 - Editorial source pass on the Summit War and New World summaries (chapter boundaries flagged by the writers: Grove 42 vs 46, Egghead 1119–1122 satellite roster, Zou beat overlap 818–820).
-- Elbaf is narrated through chapter 1191 (13 beats, 5 battles) from a chapter-by-chapter research outline; still `ongoing` and `draft`. `god-valley` has no dedicated scene kind and falls back to the night “mystery” scene.
+- Elbaf is narrated through chapter 1196 (16 beats, 7 battles) from a chapter-by-chapter research outline; still `ongoing` and `draft`. `god-valley` has no dedicated scene kind and falls back to the night “mystery” scene.
 - Cast sizes on the big arcs (Wano, Egghead, Elbaf, Marineford: 17–26) exceed the 6–12 guideline; trim if the gallery feels long.
 - Legal notices remain integrated with the existing data and styles.
 - Scenes are shared per scene kind; several settlements reuse their island's art.
@@ -29,3 +29,17 @@ Source of intent: user-provided cinematic manga explorer plan and concept art (`
 The atlas now opens as an interactive 3D globe with raised island models, Red Line terrain, Grand Line and Calm Belt waters, spherical routes, horizon-aware labels, orbit/pinch/keyboard input, region flights, zoom controls and optional automatic rotation. The searchable inspector, voyage player, saves and detailed location links work in both globe and flat-chart modes. The flat chart is also the explicit WebGL fallback. Coordinates remain schematic; unknown globe positions are omitted.
 
 The fleet registry now contains 42 pirate crews and four related factions, ordered by story relevance, with category/story filters and 113 character profiles. Original animated SVG portraits replace initials. Crew/character search, saved records and browser overlay history are connected. Supporting crew coverage is explicitly tracked separately from arc coverage. See `docs/ATLAS-MAINTENANCE.md` for authoring and validation.
+
+## Growth round, 21 October
+
+- Path URLs with legacy query support (`src/state.ts`).
+- A prerendered page, share image, sitemap and robots file for every record (`scripts/prerender.ts`, `scripts/og/`).
+- The portrait drawing split into `PortraitSvg.tsx` and `portrait-recipe.ts`.
+- A bitmap pixel font (`src/art/pixel-font.ts`).
+- Chapter refresh to 1196.
+- Bounty Board (`BountyBoard.tsx`, `StepChart.tsx`, `src/data/bounties.ts`, `bounty-board.ts`).
+- Devil Fruit encyclopedia (`DevilFruits.tsx`, `FruitIcon.tsx`, `src/data/devil-fruits.ts`, detail kind `fruit`).
+- Wanted-poster maker (`PosterMaker.tsx`, `WantedPoster.tsx`, `src/art/poster.ts`).
+- `npm run capture` for screenshots, the demo and the social preview.
+
+Design record: `docs/superpowers/specs/2026-10-21-growth-design.md`. Verification is in `docs/STATE.md`.

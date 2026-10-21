@@ -13,6 +13,7 @@ import { locations } from '../src/data/locations';
 import { characters } from '../src/data/characters';
 import { coverage } from '../src/data/coverage';
 import { stagings } from '../src/data/staging';
+import { devilFruits } from '../src/data/devil-fruits';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const strict = process.argv.includes('--strict');
@@ -43,9 +44,10 @@ const counts = {
   locations: locations.length,
   cast: stagings.reduce((n, s) => n + s.cast.length, 0),
   characters: characters.length,
+  fruits: devilFruits.length,
 };
 console.log('\nCONTENT');
-console.log(`  ${counts.arcs} arcs · ${counts.beats} beats · ${counts.battles} battles · ${counts.locations} locations · ${counts.cast} cast entries · ${counts.characters} crew profiles`);
+console.log(`  ${counts.arcs} arcs · ${counts.beats} beats · ${counts.battles} battles · ${counts.locations} locations · ${counts.cast} cast entries · ${counts.characters} crew profiles · ${counts.fruits} Devil Fruits`);
 
 /* ------------------------------------------- prose that repeats the numbers */
 const PROSE = ['README.md', 'docs/STATE.md', 'docs/IMPLEMENTATION.md', 'DESIGN.md', 'UX-CONTRACT.md', 'package.json'];
@@ -55,6 +57,7 @@ const CLAIMS: [RegExp, keyof typeof counts][] = [
   [/(\d[\d,]*) battle/g, 'battles'],
   [/(\d[\d,]*) (?:locations|places)/g, 'locations'],
   [/(\d[\d,]*) cast entries/g, 'cast'],
+  [/(\d[\d,]*) Devil Fruits?/gi, 'fruits'],
 ];
 
 console.log('\nPROSE CLAIMS');
@@ -83,6 +86,10 @@ for (const file of PROSE) {
     }
   });
 }
+// The README's chapter badge is a URL, so the prose patterns above cannot see its number.
+const badge = readFileSync(join(root, 'README.md'), 'utf8').match(/badge\/covered_through-ch\._(\d+)-/);
+if (!badge) problems.push('README.md: the "covered through" chapter badge is missing');
+else if (Number(badge[1]) !== coverage.coveredThrough) problems.push(`README.md chapter badge says ${badge[1]}; coverage.ts says ${coverage.coveredThrough}`);
 console.log(`  checked ${PROSE.length} documents for stale counts and chapter numbers`);
 console.log('  checked src/data for chapters cited beyond the cutoff');
 

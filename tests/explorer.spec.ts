@@ -23,12 +23,12 @@ test.describe('One Piece Odyssey', () => {
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
     await expect(dialog.locator('#detail-overview').getByRole('heading', { level: 2, name: 'Romance Dawn' })).toBeVisible();
-    await expect(page).toHaveURL(/arc=romance-dawn/);
+    await expect(page).toHaveURL(/\/arc\/romance-dawn\//);
     await dialog.getByRole('button', { name: /Resume here/ }).first().click();
     await expect(page).toHaveURL(/beat=/);
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await expect(page).not.toHaveURL(/arc=/);
+    await expect(page).not.toHaveURL(/\/arc\//);
   });
 
   test('arc reader shows the cast, an illustrated voyage, versus battles and next-stop navigation', async ({ page }) => {
@@ -51,7 +51,7 @@ test.describe('One Piece Odyssey', () => {
       await expect(dialog.locator('.nav-beats button.active')).toHaveCount(1);
     }
     await dialog.locator('.stop-card.next').click();
-    await expect(page).toHaveURL(/arc=arlong-park/);
+    await expect(page).toHaveURL(/\/arc\/arlong-park\//);
     await expect(dialog.locator('.arc-hero h2')).toHaveText('Arlong Park');
   });
 
@@ -86,7 +86,8 @@ test.describe('One Piece Odyssey', () => {
 
   test('world atlas opens with a searchable chart', async ({ page }) => {
     await page.goto('/?view=world');
-    await expect(page.locator('.atlas-page')).toBeVisible();
+    // The globe chunk is the heaviest in the app; under a full parallel run it can take longer than the default wait.
+    await expect(page.locator('.atlas-page')).toBeVisible({ timeout: 15_000 });
     const find = page.getByLabel('Find a place');
     await expect(find).toBeVisible();
     await find.fill('Water Seven');

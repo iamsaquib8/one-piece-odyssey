@@ -1,4 +1,5 @@
 import type { Arc, Battle, StoryBeat } from '../types';
+import { bountyChapter } from './bounties';
 import { allCharacters } from './all-characters';
 import { arcs } from './arcs';
 import { stagingAtProgress, arcAtProgress } from './spoiler-overrides';
@@ -24,10 +25,6 @@ export const characterIdentityAliases: Readonly<Record<string, readonly string[]
 };
 
 const firstChapter = (value: string): number => Number(value.match(/\d+/)?.[0] ?? Number.MAX_SAFE_INTEGER);
-const trailingChapter = (value: string): number | null => {
-  const match = value.match(/(\d+)\s*$/);
-  return match ? Number(match[1]) : null;
-};
 
 function identityIds(characterId: string) {
   return new Set([characterId, ...(characterIdentityAliases[characterId] ?? [])]);
@@ -63,12 +60,12 @@ export function buildCharacterJourney(characterId: string, through: number | nul
   }
 
   for (const bounty of character.bounties) {
-    const chapter = trailingChapter(bounty.after);
-    if (chapter === null) continue;
+    const chapter = bountyChapter(bounty.after);
+    if (chapter === undefined) continue;
     const arc = arcs.find((candidate) => chapter >= candidate.chapters[0] && chapter <= candidate.chapters[1]);
     if (!arc || !isVisible(arc, through) || (through !== null && chapter > through)) continue;
     entries.push({
-      id: `bounty:${characterId}:${chapter}`,
+      id: `bounty:${characterId}:${chapter}:${bounty.amount}`,
       kind: 'bounty',
       arcId: arc.id,
       arcName: arc.name,

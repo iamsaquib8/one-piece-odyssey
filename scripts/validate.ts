@@ -6,6 +6,8 @@ import { crews } from '../src/data/crews';
 import { allCharacters } from '../src/data/all-characters';
 import { coverage } from '../src/data/coverage';
 import { stagings } from '../src/data/staging';
+import { bountyChapter, supportingBounties } from '../src/data/bounties';
+import { devilFruits, FRUIT_TYPES } from '../src/data/devil-fruits';
 
 const problems: string[] = [];
 const ids = <T extends { id: string }>(list: T[], label: string) => { const seen = new Set<string>(); for (const x of list) { if (seen.has(x.id)) problems.push(`${label}: duplicate id ${x.id}`); seen.add(x.id); } return seen; };
@@ -71,6 +73,45 @@ for (const s of stagings) {
 }
 for (const a of arcs) if (!stagingIds.has(a.id)) problems.push(`arc ${a.id}: no staging`);
 
-const summary = `${arcs.length} arcs · ${arcs.reduce((n, a) => n + a.beats.length, 0)} beats · ${arcs.reduce((n, a) => n + a.battles.length, 0)} battles · ${locations.length} locations · ${allCharacters.length} character profiles · ${crews.length} crews/factions · ${connections.length} connections · ${stagings.reduce((n, s) => n + s.cast.length, 0)} cast entries · coverage Ch. 1–${coverage.coveredThrough}`;
+// Bounties drive spoiler limits and the Bounty Board, so each needs a parsable amount and a
+// reveal chapter inside the edition, in an order that never goes back in time.
+for (const id of Object.keys(supportingBounties)) if (!profileIds.has(id)) problems.push(`bounties: unknown profile ${id}`);
+let bountyCount = 0;
+for (const c of allCharacters) {
+  let previous = 0;
+  for (const bounty of c.bounties) {
+    bountyCount++;
+    const chapter = bountyChapter(bounty.after);
+    if (!/^\d{1,3}(,\d{3})*$/.test(bounty.amount)) problems.push(`character ${c.id}: bounty amount ${bounty.amount} is not digits with commas`);
+    if (chapter === undefined) problems.push(`character ${c.id}: bounty ${bounty.amount} has no reveal chapter`);
+    else {
+      if (chapter > coverage.coveredThrough) problems.push(`character ${c.id}: bounty ${bounty.amount} is shown in chapter ${chapter}, past the cutoff`);
+      if (chapter < previous) problems.push(`character ${c.id}: bounty ${bounty.amount} is shown in chapter ${chapter}, before the previous one`);
+      previous = chapter;
+    }
+  }
+}
+
+// Devil Fruits gate on their own chapters, so each one has to land inside the edition and inside
+// the arc it links to, and every user it names must resolve to a profile when it claims one.
+ids(devilFruits, 'devil fruits');
+const fruitTypes = new Set(FRUIT_TYPES.map((t) => t.id));
+for (const f of devilFruits) {
+  const arc = arcs.find((a) => a.id === f.arcId);
+  if (!arc) problems.push(`fruit ${f.id}: unknown arc ${f.arcId}`);
+  else if (f.revealChapter < arc.chapters[0] || f.revealChapter > arc.chapters[1]) problems.push(`fruit ${f.id}: revealed in chapter ${f.revealChapter}, outside ${f.arcId}`);
+  if (!fruitTypes.has(f.type)) problems.push(`fruit ${f.id}: unknown type ${f.type}`);
+  if (f.power.length < 40 || f.power.length > 260) problems.push(`fruit ${f.id}: power description is ${f.power.length} characters; keep it 40–260`);
+  if (!f.users.length) problems.push(`fruit ${f.id}: no users`);
+  for (const u of f.users) {
+    if (u.characterId && !profileIds.has(u.characterId)) problems.push(`fruit ${f.id}: unknown user ${u.characterId}`);
+    if (u.from > coverage.coveredThrough || (u.until ?? 0) > coverage.coveredThrough) problems.push(`fruit ${f.id}: user ${u.name} cites a chapter past the cutoff`);
+    if (u.until !== undefined && u.until < u.from) problems.push(`fruit ${f.id}: user ${u.name} loses the fruit before gaining it`);
+  }
+  for (const a of f.awakened ?? []) if (!profileIds.has(a.characterId) || a.chapter > coverage.coveredThrough) problems.push(`fruit ${f.id}: awakening ${a.characterId} at ${a.chapter} does not resolve`);
+  if (f.trueIdentity && (f.trueIdentity.chapter > coverage.coveredThrough || !fruitTypes.has(f.trueIdentity.type))) problems.push(`fruit ${f.id}: true identity does not resolve`);
+}
+
+const summary = `${arcs.length} arcs · ${arcs.reduce((n, a) => n + a.beats.length, 0)} beats · ${arcs.reduce((n, a) => n + a.battles.length, 0)} battles · ${locations.length} locations · ${allCharacters.length} character profiles · ${bountyCount} bounties · ${devilFruits.length} Devil Fruits · ${crews.length} crews/factions · ${connections.length} connections · ${stagings.reduce((n, s) => n + s.cast.length, 0)} cast entries · coverage Ch. 1–${coverage.coveredThrough}`;
 if (problems.length) { console.error(`✗ ${problems.length} content problems\n` + problems.map((p) => `  - ${p}`).join('\n')); console.error(summary); process.exit(1); }
 console.log(`✓ content edition is consistent\n${summary}`);

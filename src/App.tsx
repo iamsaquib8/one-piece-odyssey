@@ -4,8 +4,9 @@ import { AnimatePresence, motion as m, useReducedMotion } from 'motion/react';
 import { arcSummaries as allArcs, locationSummaries as locations, sagas as allSagas, chapterLabel, type ArcSummary } from './data/arc-index';
 import { coverage } from './data/coverage';
 import { legalSections, legalUpdated } from './data/legal';
-import { decodeReader, decodeRoute, encodeRoute, readReader, saveReader, toggleItem } from './state';
+import { canonicalUrl, decodeReader, decodeRoute, encodeRoute, isLegacyUrl, readReader, saveReader, toggleItem } from './state';
 import type { ReaderState, Route, View } from './types';
+import { DISCOVER_VIEWS } from './types';
 import { Scene } from './components/Scene';
 import { VoyageRoute } from './components/VoyageRoute';
 import { PixelBurst, useBurst } from './components/PixelBurst';
@@ -43,10 +44,11 @@ function useReveal(active: boolean) {
 }
 
 export default function App() {
-  const [route, setRoute] = useState<Route>(() => decodeRoute(window.location.search));
+  const [route, setRoute] = useState<Route>(() => decodeRoute(window.location.pathname + window.location.search));
   const [reader, setReader] = useState<ReaderState>(initialReader);
   const through = reader.spoilerThrough;
-  const activeView = route.view === 'mysteries' ? 'trails' : route.view;
+  const discovering = (DISCOVER_VIEWS as readonly View[]).includes(route.view);
+  const activeView = discovering ? 'trails' : route.view;
   const arcs = useMemo(() => allArcs.filter(a => isArcVisible(a, through)), [through]);
   const sagas = useMemo(() => allSagas.filter(s => arcs.some(a => a.sagaId === s.id)), [arcs]);
   const [toast, setToast] = useState('');
@@ -75,8 +77,10 @@ export default function App() {
   useEffect(() => { const visibility = () => setDocumentVisible(!document.hidden); document.addEventListener('visibilitychange', visibility); return () => document.removeEventListener('visibilitychange', visibility); }, []);
   useEffect(() => {
     history.scrollRestoration = 'manual';
-    if (!history.state?.odyssey) history.replaceState({ odyssey: true, depth: 0, pageY: 0 }, '', window.location.href);
-    const onPop = () => { const next = decodeRoute(window.location.search); openingDepth.current = history.state?.depth || 0; setRoute(next); if (!next.kind) requestAnimationFrame(() => window.scrollTo({ top: history.state?.pageY || 0, behavior: 'instant' })); };
+    const here = window.location.pathname + window.location.search;
+    // Links shared before path URLs carry the route in the query; settle them on the path they now live at.
+    if (!history.state?.odyssey || isLegacyUrl(here)) history.replaceState(history.state?.odyssey ? history.state : { odyssey: true, depth: 0, pageY: 0 }, '', isLegacyUrl(here) ? canonicalUrl(here) + window.location.hash : window.location.href);
+    const onPop = () => { const next = decodeRoute(window.location.pathname + window.location.search); openingDepth.current = history.state?.depth || 0; setRoute(next); if (!next.kind) requestAnimationFrame(() => window.scrollTo({ top: history.state?.pageY || 0, behavior: 'instant' })); };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
@@ -107,19 +111,19 @@ export default function App() {
     if (!current.kind) { origin.current = document.activeElement as HTMLElement; pageY.current = window.scrollY; history.replaceState({ ...history.state, pageY: pageY.current }, '', window.location.href); }
     const next: Route = { view: current.view, kind, id, ...(beat ? { beat } : {}), ...(current.q ? { q: current.q } : {}) };
     openingDepth.current = (current.kind ? openingDepth.current : 0) + 1;
-    history.pushState({ odyssey: true, depth: openingDepth.current, pageY: pageY.current }, '', encodeRoute(next) || '/');
+    history.pushState({ odyssey: true, depth: openingDepth.current, pageY: pageY.current }, '', encodeRoute(next));
     setRoute(next);
     if (kind === 'arc') setReader((r) => ({ ...r, resume: { ...r.resume, arcId: id, ...(beat ? { beat } : { beat: undefined }) } }));
   }, []);
   function close() {
     if (openingDepth.current > 0) { history.go(-openingDepth.current); return; }
-    const next: Route = { view: route.view, ...(route.q ? { q: route.q } : {}) }; history.replaceState({ odyssey: true, depth: 0, pageY: pageY.current }, '', encodeRoute(next) || window.location.pathname); setRoute(next);
+    const next: Route = { view: route.view, ...(route.q ? { q: route.q } : {}) }; history.replaceState({ odyssey: true, depth: 0, pageY: pageY.current }, '', encodeRoute(next)); setRoute(next);
     requestAnimationFrame(() => window.scrollTo({ top: pageY.current, behavior: 'instant' }));
   }
   function navigate(view: View) {
     if (routeRef.current.view === view && !routeRef.current.kind) { if (view === 'journey') window.scrollTo({ top: 0, behavior: motion ? 'smooth' : 'instant' }); return; }
     history.replaceState({ ...history.state, pageY: window.scrollY }, '', window.location.href);
-    const next: Route = { view }; history.pushState({ odyssey: true, depth: 0, pageY: 0 }, '', encodeRoute(next) || window.location.pathname); openingDepth.current = 0; setRoute(next); window.scrollTo({ top: 0, behavior: 'instant' });
+    const next: Route = { view }; history.pushState({ odyssey: true, depth: 0, pageY: 0 }, '', encodeRoute(next)); openingDepth.current = 0; setRoute(next); window.scrollTo({ top: 0, behavior: 'instant' });
   }
   function jumpSaga(id: string) {
     const go = () => document.getElementById(`saga-${id}`)?.scrollIntoView({ behavior: motion ? 'smooth' : 'instant', block: 'start' });
@@ -162,7 +166,7 @@ export default function App() {
     </header>
     <aside className="saga-rail"><span className="micro rail-title">SAGA</span><nav aria-label="Saga navigation">{sagas.map((s) => { const Icon = sagaIcons[s.id] || Compass; const active = activeSaga === s.id && route.view === 'journey'; return <button key={s.id} className={active ? 'active' : ''} onClick={() => jumpSaga(s.id)} title={s.name} aria-current={active ? 'location' : undefined}>{active ? <m.i layoutId="rail-ink" className="rail-ink" transition={{ type: 'spring', stiffness: 380, damping: 34 }} /> : null}<Icon size={22} className="rail-icon" /><span>{s.name.replace(' Saga', '')}</span></button>; })}</nav><div className="rail-footer"><span className="rail-dash" aria-hidden="true" /><Anchor size={27} /><span>GRAND LINE<br />AWAITS…</span></div></aside>
     <main id="main" className={`main-shell view-${route.view}`}>
-      {route.view === 'trails' || route.view === 'mysteries' ? <DiscoveryNavigation view={route.view} onNavigate={navigate} /> : null}
+      {discovering ? <DiscoveryNavigation view={route.view} onNavigate={navigate} /> : null}
       <AnimatePresence key={through ?? "all"} mode="wait" initial={false}>
         <m.div key={`${route.view}-${through ?? 'all'}`} initial={motion ? { opacity: 0, y: 18 } : false} animate={{ opacity: 1, y: 0 }} exit={motion ? { opacity: 0, y: -10, transition: { duration: 0.16 } } : undefined} transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}>
           {route.view === 'journey' ? <>

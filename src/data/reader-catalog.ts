@@ -7,14 +7,15 @@ import { crews, crewFirstAppearance } from './crews';
 import { stagingAtProgress, arcAtProgress, DRAGON_IDENTITY_THROUGH } from './spoiler-overrides';
 import { crewAboard } from './crew-roster';
 import { characters as strawHats } from './characters';
+import { bountyChapter } from './bounties';
+import { devilFruits, fruitsAtProgress } from './devil-fruits';
 
 const canonicalId = (id: string) => id === 'jinbe-knight' ? 'jinbe' : id === 'miss-all-sunday' ? 'robin' : id;
 const firstChapter = (text: string) => Number(text.match(/\d+/)?.[0] ?? Infinity);
-const lastChapter = (text: string) => Number(text.match(/\d+\s*$/)?.[0] ?? Infinity);
 
 /** Project content before it reaches a view; undated edition-wide prose stays out of limited mode. */
 export function buildReaderCatalog(through: number | null) {
-  if (through === null) return { arcs, locations, characters, crews };
+  if (through === null) return { arcs, locations, characters, crews, devilFruits };
   const visibleArcs = arcs.filter(a => isArcVisible(a, through)).map(a => arcAtProgress(a, through));
   const arcIds = new Set(visibleArcs.map(a => a.id));
   const cast = new Map(visibleArcs.flatMap(a => (stagingAtProgress(a.id, through)?.cast ?? []).map(c => [canonicalId(c.id), { member: c, arcId: a.id }] as const)));
@@ -23,7 +24,7 @@ export function buildReaderCatalog(through: number | null) {
     return {
       ...c, name: entry.member.name, epithet: '', role: 'Character',
       description: entry.member.role, dream: '', recruitment: '', arcId: entry.arcId,
-      milestones: [], bounties: c.bounties.filter(b => lastChapter(b.after) <= through),
+      milestones: [], bounties: c.bounties.filter(b => (bountyChapter(b.after) ?? Infinity) <= through),
     };
   });
   const knownIds = new Set(knownCharacters.map(c => c.id));
@@ -45,6 +46,7 @@ export function buildReaderCatalog(through: number | null) {
   return {
     arcs: visibleArcs.map(a => ({ ...a, overview: [], legacy: [], locationIds: a.locationIds.filter(id => placeIds.has(id)), characterIds: a.characterIds.filter(id => knownIds.has(id)) })),
     locations: knownPlaces, characters: knownCharacters, crews: knownCrews,
+    devilFruits: fruitsAtProgress(through).map((f) => ({ ...f, users: f.users.map((u) => u.characterId && !knownIds.has(u.characterId) ? { name: u.name, from: u.from, ...(u.until ? { until: u.until } : {}) } : u) })),
   };
 }
 

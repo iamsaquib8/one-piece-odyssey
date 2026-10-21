@@ -24,7 +24,7 @@ describe('reading horizon catalog', () => {
   });
   it('keeps the entire edition in full mode and supports not started', () => {
     expect(buildReaderCatalog(null).arcs.length).toBeGreaterThan(30);
-    expect(buildReaderCatalog(0)).toEqual({arcs: [], locations: [], characters: [], crews: []});
+    expect(buildReaderCatalog(0)).toEqual({arcs: [], locations: [], characters: [], crews: [], devilFruits: []});
     expect(buildReaderCatalog(6).arcs).toEqual([]);
   });
   it('does not claim future crew affiliations just because a character appeared', () => {

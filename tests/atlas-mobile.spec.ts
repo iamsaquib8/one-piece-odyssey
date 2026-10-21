@@ -16,7 +16,7 @@ test('globe, region flight, island notes and alternate chart',async({page})=>{
   await expect(page.locator('.atlas-note-title h2')).toHaveText('Egghead');
   await page.getByRole('button',{name:'Open field notes',exact:true}).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page).toHaveURL(/location=egghead/);
+  await expect(page).toHaveURL(/\/location\/egghead\//);
   await page.getByRole('button',{name:'Close details'}).click();
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.locator('.atlas-note-title h2')).toHaveText('Egghead');
