@@ -32,16 +32,16 @@ export default function GlobeView(props:Props){
     scene.add(new THREE.HemisphereLight('#ddf4ef','#406681',2.1));
     const sun=new THREE.DirectionalLight('#fff1cf',3);sun.position.set(-3,5,8);scene.add(sun);
     const fill=new THREE.DirectionalLight('#4daec3',1);fill.position.set(4,-1,-4);scene.add(fill);
-    const planet=new THREE.Mesh(new THREE.SphereGeometry(2.5,96,64),new THREE.MeshPhongMaterial({map:planetTexture(),shininess:19,specular:'#346876'}));scene.add(planet);
+    const planet=new THREE.Mesh(new THREE.SphereGeometry(2.5,96,64),new THREE.MeshLambertMaterial({map:planetTexture()}));scene.add(planet);
     // Raised, continuous meridian continent: both crossings are parts of one Red Line.
     const ridgePoints=Array.from({length:321},(_,i)=>{const a=i/320*Math.PI*2,lon=10*Math.PI/180;return new THREE.Vector3(Math.cos(a)*Math.sin(lon)*2.51,Math.sin(a)*2.51,Math.cos(a)*Math.cos(lon)*2.51);});
     const ridge=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ridgePoints,true),320,.037,5,true),new THREE.MeshStandardMaterial({color:'#b56a4d',roughness:.94}));scene.add(ridge);
-    const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(2.57,64,48),new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.AdditiveBlending,vertexShader:'varying vec3 vN; varying vec3 vP; void main(){vN=normalize(normalMatrix*normal); vP=(modelViewMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*vec4(vP,1.0);}',fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){float rim=pow(1.0-abs(dot(normalize(vN),normalize(-vP))),3.0); gl_FragColor=vec4(0.18,0.68,0.85,rim*0.8);}'}));scene.add(atmosphere);
+    const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(2.57,64,48),new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.BackSide,blending:THREE.NormalBlending,vertexShader:'varying vec3 vN; varying vec3 vP; void main(){vN=normalize(normalMatrix*normal); vP=(modelViewMatrix*vec4(position,1.0)).xyz; gl_Position=projectionMatrix*vec4(vP,1.0);}',fragmentShader:'varying vec3 vN; varying vec3 vP; void main(){float rim=pow(1.0-abs(dot(normalize(vN),normalize(-vP))),3.0); gl_FragColor=vec4(0.16,0.13,0.09,rim*0.35);}'}));scene.add(atmosphere);
     const grid=new THREE.Group();scene.add(grid);
-    const lineMaterial=new THREE.LineBasicMaterial({color:'#92d1d3',transparent:true,opacity:.11});
+    const lineMaterial=new THREE.LineBasicMaterial({color:'#2a2117',transparent:true,opacity:.2});
     for(let lat=-60;lat<=60;lat+=30){const pts=Array.from({length:129},(_,i)=>new THREE.Vector3(...spherePoint({lat,lon:i/128*360},2.508)));grid.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lineMaterial));}
     for(let lon=0;lon<360;lon+=30){const pts=Array.from({length:65},(_,i)=>new THREE.Vector3(...spherePoint({lat:-90+i/64*180,lon},2.508)));grid.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),lineMaterial));}
-    for(const lat of [-21,-14,14,21]){const pts=Array.from({length:193},(_,i)=>new THREE.Vector3(...spherePoint({lat,lon:i/192*360},2.51)));scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:Math.abs(lat)===14?'#bad9bb':'#579a9d',transparent:true,opacity:.4})));}
+    for(const lat of [-21,-14,14,21]){const pts=Array.from({length:193},(_,i)=>new THREE.Vector3(...spherePoint({lat,lon:i/192*360},2.51)));scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:'#2a2117',transparent:true,opacity:Math.abs(lat)===14?.45:.25})));}
     const landmarks=new THREE.Group();scene.add(landmarks);
     const meshes=new Map<string,THREE.Group>();
     for(const p of globePlaces.filter(p=>p.major)){
@@ -58,7 +58,7 @@ export default function GlobeView(props:Props){
       const a=globePlaceById.get(c.from),b=globePlaceById.get(c.to);if(!a||!b)return;
       const v1=new THREE.Vector3(...spherePoint(a,1)),v2=new THREE.Vector3(...spherePoint(b,1));
       const points=Array.from({length:40},(_,i)=>{const t=i/39;return v1.clone().lerp(v2,t).normalize().multiplyScalar(2.53+Math.sin(t*Math.PI)*(c.kind==='narrative'?.22:.06));});
-      const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineDashedMaterial({color:c.kind==='voyage'?'#ffda7e':c.kind==='narrative'?'#c4a8fa':'#8ef3cf',dashSize:.033,gapSize:.036,transparent:true,opacity:c.kind==='voyage'?.65:.8}));line.computeLineDistances();routeGroups[c.kind==='narrative'?'story':c.kind==='geographic'?'geography':'voyage'].add(line);
+      const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineDashedMaterial({color:c.kind==='voyage'?'#b23a2e':c.kind==='narrative'?'#5b3f8c':'#1f6f68',dashSize:.033,gapSize:.036,transparent:true,opacity:c.kind==='voyage'?.85:.8}));line.computeLineDistances();routeGroups[c.kind==='narrative'?'story':c.kind==='geographic'?'geography':'voyage'].add(line);
     });
     let layoutScale=1,width=600,height=560,raf=0,alive=true,inView=true,animateMotion=props.motion,autoRotate=false,transition:{from:THREE.Vector3;to:THREE.Vector3;start:number}|null=null,lastFront='';
     const projected=new THREE.Vector3();

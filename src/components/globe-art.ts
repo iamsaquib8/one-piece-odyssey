@@ -11,8 +11,10 @@ export function planetTexture(){
     const red=redDistance<.055+Math.sin(y*.075)*.01+Math.sin(y*.2)*.005;
     const calm=Math.abs(lat)>14&&Math.abs(lat)<21;
     const belt=Math.abs(lat)<14;
-    let color=red?[155+noise*16,77+noise*11,48+noise*8]:calm?[12+noise*2,60+noise*4,77+noise*5]:belt?[15+noise*3,117+noise*9,138+noise*9]:[12+noise*3,78+noise*8,112+noise*10];
-    if(Math.abs(lat)>74&&!red){color=[57+noise*5,113+noise*7,140+noise*8];}
+    // Parchment tones to match the flat chart: brick Red Line, hatched-sand Calm Belts, a sea-green Grand Line.
+    let color=red?[184+noise*14,111+noise*10,82+noise*8]:calm?[215+noise*6,199+noise*6,156+noise*6]:belt?[160+noise*8,200+noise*8,187+noise*8]:[190+noise*7,214+noise*7,198+noise*7];
+    if(Math.abs(lat)>74&&!red){color=[233+noise*4,224+noise*4,194+noise*4];}
+    if(calm&&(x+y)%9<1.4)color=[150,135,100];
     const i=(y*1536+x)*4;data.data[i]=color[0];data.data[i+1]=color[1];data.data[i+2]=color[2];data.data[i+3]=255;
   }
   ctx.putImageData(data,0,0);
@@ -21,7 +23,7 @@ export function planetTexture(){
     const x=(((p.lon+90)%360+360)%360)/360*1536,y=(90-p.lat)/180*768;
     if(p.kind==='ship'||p.kind==='sea'||p.kind==='boundary')continue;
     const seed=p.id.split('').reduce((n,c)=>n+c.charCodeAt(0),0),r=p.id==='alabasta'||p.id==='wano-country'?13:7;
-    for(let layer=2;layer>=0;layer--){ctx.beginPath();for(let i=0;i<20;i++){const a=i/20*Math.PI*2;const radius=(r+layer*3)*(1+Math.sin(i*2.3+seed)*.19);const px=x+Math.cos(a)*radius,py=y+Math.sin(a)*radius*.6;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();ctx.fillStyle=layer===2?'#168899':layer===1?'#b0ba79':p.id==='alabasta'?'#d4ad68':p.id==='drum-island'?'#d2e5dc':'#61966a';ctx.fill();}
+    for(let layer=2;layer>=0;layer--){ctx.beginPath();for(let i=0;i<20;i++){const a=i/20*Math.PI*2;const radius=(r+layer*3)*(1+Math.sin(i*2.3+seed)*.19);const px=x+Math.cos(a)*radius,py=y+Math.sin(a)*radius*.6;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.closePath();ctx.fillStyle=layer===2?'#7fb3a6':layer===1?'#b0ba79':p.id==='alabasta'?'#d4ad68':p.id==='drum-island'?'#d2e5dc':'#61966a';ctx.fill();}
   }
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=4;
   return texture;
