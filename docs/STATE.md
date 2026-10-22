@@ -93,6 +93,17 @@ Why: the site could not be found or shared. Every URL returned the same title an
   - New e2e specs: `seo`, `bounties`, `devil-fruits` and `poster`.
   - The Laboon battle test now scrolls the stage, not the button, into view; it had failed on CI since 8 September.
 
+## Treasure-chart atlas, 22 October
+
+- **The chart opens first.** The atlas now opens on the flat chart, which loads at once. The 3D globe is one click away.
+- **Redrawn as an old sea chart.** `AtlasBackdrop.tsx` draws parchment with sea washes, ink-hatched Calm Belts, rhumb lines from two compass roses, ink sea kings, a Grand Line cartouche and a ticked frame.
+- **Red-ink route.** The voyage route is dashed red ink.
+- **Island names.** Every name that fits is shown, majors first. Names never overprint each other or a neighbour's island art, and stay inside the frame; the rest appear as you zoom in. Names draw in their own layer above the islands.
+- **Restyled shell and globe.** The shell and toolbars use paper and ink. The globe is a matte parchment sphere with an ink grid and hatched Calm Belts; the gloss and the blue glow are gone.
+- **The frame matches the chart.** The canvas is sized to the chart's 12:7 ratio, so there are no empty bands, on phones included.
+- **Island art kept its size.** The flat-chart anchoring test caught overlaps when islands were scaled up, so the art stays at its original size.
+- **Tests and capture.** Atlas tests now open the globe explicitly when they test it. `npm run capture` also re-shoots `world-atlas.webp`.
+
 ## Content inventory
 
 | File | Arcs | Chapters |

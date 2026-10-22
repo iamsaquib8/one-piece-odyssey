@@ -17,6 +17,8 @@ interface Props {motion:boolean;reader:ReaderState;onOpen:(kind:NonNullable<Rout
 const normalize=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f’']/g,'').toLowerCase().replaceAll('-',' ');
 const connectionPath=(a:{x:number;y:number},b:{x:number;y:number},bend=0)=>`M${a.x} ${a.y} Q${(a.x+b.x)/2} ${(a.y+b.y)/2-bend} ${b.x} ${b.y}`;
 const regionLabel=(region:string)=>({'east-blue':'East Blue',paradise:'Paradise',sky:'Sky seas','red-line':'Red Line','calm-belt':'Calm Belt','new-world':'New World',other:'Elsewhere'}[region]||region);
+const shortTitle=(name:string)=>name.replace('Kingdom of ','').replace('Archipelago','Arch.').replace('White Sea and Heaven’s Gate','White Sea');
+
 export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route}:Props){
   const horizon=useReadingHorizon();
   const catalog=useReaderCatalog();
@@ -42,7 +44,8 @@ export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route
   }),[allowedPlaceIds,horizon]);
   const [rotating,setRotating]=useState(false);
   const [front,setFront]=useState('Paradise');
-  const [mode,setMode]=useState<'globe'|'chart'>('globe');
+  // The chart opens first: it loads instantly and matches the rest of the site; the globe is a click away.
+  const [mode,setMode]=useState<'globe'|'chart'>('chart');
   const [focusToken,setFocusToken]=useState(()=>new URLSearchParams(location.search).has('mapPlace')?1:0);
   const [resetToken,setResetToken]=useState(0);
   const [camera,setCamera]=useState<Camera>(()=>clampCamera(history.state?.atlas?.camera||HOME_CAMERA));
@@ -82,6 +85,25 @@ export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route
     return inRegion&&(!query.trim()||normalize(`${p.name} ${p.description} ${p.region} ${p.landmarks.join(' ')}`).includes(normalize(query.trim())));
   }),[query,region]);
   const visiblePlaces=atlasPlaces.filter(p=>p.major||p.id===selected||(zoom>=2.5&&(!place||p.parentId===place.id||p.parentId===place.parentId)));
+  // Name every island that fits: majors first, then the rest as the reader zooms in, skipping any
+  // name that would overprint one already placed. Boxes are in chart units at the current scale.
+  const labelled=useMemo(()=>{
+    const out=new Set<string>();if(!layers.labels)return out;
+    const placed:{l:number;t:number;r:number;b:number}[]=[];const size=11/scale,gap=6/scale;
+    // Island artwork counts as occupied too, so a name never sits on a neighbour's drawing.
+    const art=visiblePlaces.map(p=>{const ms=(p.major?1:.72)*markerScale;return {id:p.id,l:p.x-42*ms,t:p.y-56*ms,r:p.x+42*ms,b:p.y-4*ms};});
+    for(const p of [...visiblePlaces].sort((a,b)=>Number(b.major)-Number(a.major)||b.arcIds.length-a.arcIds.length)){
+      if(!p.major&&zoom<2)continue;
+      const width=shortTitle(p.name).length*size*.68,top=p.y+17/scale;
+      const box={l:p.x-width/2,t:top,r:p.x+width/2,b:top+size*1.3};
+      // A name that would run off the chart's frame is left for the reader to zoom into.
+      if(box.l<30||box.r>ATLAS_WIDTH-30||box.b>ATLAS_HEIGHT-30)continue;
+      const hits=(o:{l:number;t:number;r:number;b:number})=>box.l<o.r+gap&&box.r>o.l-gap&&box.t<o.b+gap&&box.b>o.t-gap;
+      if(placed.some(hits)||art.some(a=>a.id!==p.id&&hits(a)))continue;
+      placed.push(box);out.add(p.id);
+    }
+    return out;
+  },[visiblePlaces,scale,zoom,markerScale,layers.labels]);
   const sublocations=place?atlasPlaces.filter(p=>p.parentId===(place.parentId||place.id)):[];
   useEffect(()=>{
     if(horizon===null||placeById.has(selected))return;
@@ -193,24 +215,28 @@ export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route
             <title>Schematic map of the One Piece world</title><desc>The Grand Line is unwrapped with two crossings of the same Red Line. Positions, distances, island scales and narrative routes are illustrative. Sky and underwater scenes are inset views.</desc>
             <AtlasBackdrop/>
             <g fill="none" strokeLinecap="round" aria-hidden="true">
-              {layers.voyage&&routeConnections.filter(c=>c.kind==='voyage').map((c,i)=>{const a=placeById.get(c.from),b=placeById.get(c.to);if(!a||!b)return null;return <path key={i} className="atlas-route" d={connectionPath(a,b,28)} stroke="#e8c774" strokeWidth={2.2/scale} strokeDasharray={`${5/scale} ${7/scale}`} opacity={selected===a.id||selected===b.id?1:.55}/>;})}
-              {layers.story&&routeConnections.filter(c=>c.kind==='narrative').map((c,i)=>{const a=placeById.get(c.from),b=placeById.get(c.to);return a&&b?<path key={i} d={connectionPath(a,b,120)} stroke="#bb9cf6" strokeWidth={2/scale} strokeDasharray={`${2/scale} ${7/scale}`}><title>{c.label}</title></path>:null;})}
-              {layers.geography&&horizon===null&&[['sabaody-archipelago','fish-man-island'],['mary-geoise','fish-man-island'],['water-seven','enies-lobby']].map(([aId,bId])=>{const a=placeById.get(aId),b=placeById.get(bId);return a&&b?<path key={aId} d={connectionPath(a,b)} stroke="#74e1cd" strokeWidth={2.5/scale}/>:null;})}
+              {layers.voyage&&routeConnections.filter(c=>c.kind==='voyage').map((c,i)=>{const a=placeById.get(c.from),b=placeById.get(c.to);if(!a||!b)return null;return <path key={i} className="atlas-route" d={connectionPath(a,b,28)} stroke="#b23a2e" strokeWidth={2.6/scale} strokeDasharray={`${7/scale} ${6/scale}`} opacity={selected===a.id||selected===b.id?1:.7}/>;})}
+              {layers.story&&routeConnections.filter(c=>c.kind==='narrative').map((c,i)=>{const a=placeById.get(c.from),b=placeById.get(c.to);return a&&b?<path key={i} d={connectionPath(a,b,120)} stroke="#5b3f8c" strokeWidth={2/scale} strokeDasharray={`${2/scale} ${7/scale}`}><title>{c.label}</title></path>:null;})}
+              {layers.geography&&horizon===null&&[['sabaody-archipelago','fish-man-island'],['mary-geoise','fish-man-island'],['water-seven','enies-lobby']].map(([aId,bId])=>{const a=placeById.get(aId),b=placeById.get(bId);return a&&b?<path key={aId} d={connectionPath(a,b)} stroke="#1f6f68" strokeWidth={2.5/scale}/>:null;})}
             </g>
             {visiblePlaces.map(p=>{
-              const active=selected===p.id,hover=hovered===p.id;
+              const active=selected===p.id;
               const matching=region==='all'||region===p.region;
-              const label=active||hover||layers.labels&&zoom>=2.5&&p.major&&Math.hypot((p.x-camera.x)*scale,(p.y-camera.y)*scale)<100;
               const ms=(p.major?1:.72)*markerScale;
-              const title=p.name.replace('Kingdom of ','').replace('Archipelago','Arch.').replace('White Sea and Heaven’s Gate','White Sea');
               return <g key={p.id} data-place={p.id} className={`atlas-pin ${active?'is-active':''}`} transform={`translate(${p.x} ${p.y})`} tabIndex={0} role="button" aria-label={`Select ${p.name}`} aria-pressed={active} opacity={matching?1:.35} onPointerEnter={()=>setHovered(p.id)} onPointerLeave={()=>setHovered(null)} onFocus={()=>setHovered(p.id)} onBlur={()=>setHovered(null)} onClick={e=>{e.stopPropagation();if(!moved.current)selectPlace(p,false);}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectPlace(p,false);}}}>
                 <rect x={-Math.max(70*ms,22/scale)} y={-Math.max(70*ms,22/scale)} width={Math.max(140*ms,44/scale)} height={Math.max(90*ms,44/scale)} fill="transparent"/>
                 <g className="atlas-island-art" transform={`translate(${-80*ms} ${-84*ms}) scale(${ms*.5})`} pointerEvents="none"><MapIsland locationId={p.id}/></g>
-                <ellipse className="atlas-pin-ring" rx={(active?44:32)*ms} ry={9*ms} cy={-9*ms} fill="none" stroke={active?'#ffe18b':'#96d4be'} strokeWidth={active?2/scale:1/scale} strokeOpacity={active?1:.3}/>
-                {reader.explored.some(id=>p.arcIds.includes(id))?<circle cx={32*ms} cy={-40*ms} r={6/scale} fill="#70ddba" stroke="#10243a" strokeWidth={1/scale}/>:null}
-                {label?<g className="atlas-pin-label" transform={`translate(0 ${17/scale})`} pointerEvents="none"><text textAnchor="middle" fontSize={(active?12:10.5)/scale} fontWeight={active?900:800} stroke="#082e3e" strokeWidth={5/scale} paintOrder="stroke" fill={active?'#ffe18b':'#fff4d8'}>{title}</text>{active?<path d={`M${-30/scale} ${7/scale}h${60/scale}`} stroke="#e8c774" strokeWidth={1/scale}/>:null}</g>:null}
+                <ellipse className="atlas-pin-ring" rx={(active?44:32)*ms} ry={9*ms} cy={-9*ms} fill="none" stroke={active?'#b23a2e':'#2a2117'} strokeWidth={active?2.4/scale:1/scale} strokeOpacity={active?1:.28}/>
+                {reader.explored.some(id=>p.arcIds.includes(id))?<circle cx={32*ms} cy={-40*ms} r={6/scale} fill="#2f8f6b" stroke="#2a2117" strokeWidth={1/scale}/>:null}
               </g>;
             })}
+            {/* Names draw above every island, so a later island never covers an earlier name. */}
+            <g className="atlas-label-layer" pointerEvents="none">{visiblePlaces.map(p=>{
+              const active=selected===p.id,hover=hovered===p.id;
+              if(!(active||hover||labelled.has(p.id)))return null;
+              const title=shortTitle(p.name);
+              return <g key={p.id} transform={`translate(${p.x} ${p.y})`}><g className="atlas-pin-label" transform={`translate(0 ${17/scale})`} pointerEvents="none"><text className="atlas-pin-name" textAnchor="middle" fontSize={(active?13:11)/scale} fontWeight={active?800:700} stroke="#f1e3bd" strokeWidth={4/scale} paintOrder="stroke" fill={active?'#b23a2e':'#2a2117'}>{title}</text>{active?<path d={`M${-30/scale} ${7/scale}h${60/scale}`} stroke="#b23a2e" strokeWidth={1.2/scale}/>:null}</g></g>;
+            })}</g>
             <g className="atlas-voyage-ship" transform={`translate(${stop.place.x-35} ${stop.place.y+42}) scale(${1/zoom})`} aria-hidden="true"><path d="M-20 0h40L9 17H-10Z" fill="#c28a4e" stroke="#082b37" strokeWidth="3"/><path d="M0 0V-36H4V0" fill="#ecc98a"/><path d="M-2-32L-22-4H-2ZM5-30L26-4H5Z" fill={stop.arc.chapters[0]>=435?'#f7b565':'#fff8e7'}/><circle cx="5" cy="-15" r="4" fill="#10243a"/></g>
           </svg>}
 
@@ -226,7 +252,7 @@ export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route
           place?<div className="atlas-field-notes" key={place.id}><div className="atlas-note-title"><div><span className="micro">{regionLabel(place.region)}</span><h2>{place.name}</h2></div><button className="atlas-icon" aria-label={`${reader.saved.includes(`location:${place.id}`)?'Unsave':'Save'} ${place.name}`} aria-pressed={reader.saved.includes(`location:${place.id}`)} onClick={()=>onSave(`location:${place.id}`)}>{reader.saved.includes(`location:${place.id}`)?<BookmarkCheck size={19}/>:<Bookmark size={19}/>}</button></div><Scene locationId={place.id} name={place.name} eager/><p>{place.description}</p><dl className="atlas-location-meta"><div><dt><Compass size={14}/> Region</dt><dd>{regionLabel(place.region)}</dd></div><div><dt><Flag size={14}/> Setting</dt><dd>{place.kind}</dd></div><div><dt><BookOpen size={14}/> Chapters</dt><dd>{place.chapters.replace('Ch. ','')}</dd></div></dl><button className="atlas-primary" onClick={()=>onOpen('location',place.id)}><BookOpen size={17}/> Open field notes <ArrowRight size={17}/></button><button className="atlas-focus" disabled={mode==='globe'&&place.id==='god-valley'} onClick={()=>selectPlace(place)}><Focus size={15}/> Centre on this place</button><div className="atlas-landmarks"><span className="micro">LOOK FOR</span>{place.landmarks.map(l=><span key={l}><MapPin size={12}/>{l}</span>)}</div>{sublocations.length>0?<div className="atlas-nearby"><span className="micro">IN THIS SETTING</span>{sublocations.filter(p=>p.id!==place.id).map(p=><button key={p.id} onClick={()=>selectPlace(p)}>{p.name}<ChevronRight size={14}/></button>)}</div>:null}<div className="atlas-related-arcs"><span className="micro">IN THE MANGA</span>{place.arcIds.map(id=>{const a=catalog.arcs.find(x=>x.id===id);return a?<button key={id} onClick={()=>onOpen('arc',id)}><span>{a.name}<small>{chapterLabel(a)}</small></span>{reader.explored.includes(id)?<Check size={15}/>:<ArrowRight size={15}/>}</button>:null;})}</div></div>:<div className="atlas-empty"><Compass size={36}/><h2>Uncharted destination</h2><p>This place is outside the current reading horizon.</p><button className="button" onClick={()=>{setSelected(atlasPlaces[0]?.id??'');setTab('list');}}>Browse known places</button></div>}
         </div>
       </aside></div>
-      <div className="atlas-bottom-note"><span><Wind size={14}/> Schematic geography · not canonical coordinates or scale</span><span>Gold = voyage · {reader.motion?'Motion follows your device settings':'Animations off'}</span></div>
+      <div className="atlas-bottom-note"><span><Wind size={14}/> Schematic geography · not canonical coordinates or scale</span><span>Red ink = voyage · {reader.motion?'Motion follows your device settings':'Animations off'}</span></div>
     </div>
     {horizon===null?<div className="atlas-world-notes"><div><Compass size={24}/><h2>One planet. Extraordinary seas.</h2><p>The Red Line and Grand Line divide the world into four Blues. This chart unfolds the voyage; the two Red Line crossings belong to the same continent.</p></div><div><Wind size={24}/><h2>The sea has its own rules.</h2><p>Calm Belts flank the Grand Line. Sky routes, underwater passages, flashbacks and moving settings are shown as schematic connections, never precise coordinates.</p></div><div><Flag size={24}/><h2>Some horizons remain unknown.</h2><p>Laugh Tale has no confirmed position on this chart, and the seas past Elbaf are unmapped. The map leaves unrevealed geography to the manga.</p></div></div>:null}
     <button className="text-link light" onClick={()=>onNavigate('journey')}><ArrowLeft size={15}/> Follow the full manga journey</button>

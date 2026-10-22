@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 test('globe, region flight, island notes and alternate chart',async({page})=>{
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('/?view=world');
+  await page.goto('/?view=world');await page.getByRole('button',{name:'3D globe',exact:true}).click();
   const globe=page.getByTestId('earth-globe');
   await expect(globe).toBeVisible({timeout:30000});
   await expect(globe.locator('canvas, .globe-fallback').first()).toBeVisible({timeout:15000});
@@ -32,7 +32,7 @@ test('globe, region flight, island notes and alternate chart',async({page})=>{
 
 test('globe has a usable fallback when WebGL is unavailable',async({page})=>{
   await page.addInitScript(()=>{const get=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(this:HTMLCanvasElement,kind:string,...rest:unknown[]){if(kind==='webgl'||kind==='webgl2'||kind==='experimental-webgl')return null;return Reflect.apply(get,this,[kind,...rest]);} as typeof get;});
-  await page.goto('/?view=world');
+  await page.goto('/?view=world');await page.getByRole('button',{name:'3D globe',exact:true}).click();
   await page.getByRole('button',{name:'Open flat atlas',exact:true}).click();
   await expect(page.locator('.atlas-canvas')).toBeVisible();
   await page.getByLabel('Find a place').fill('Water Seven');
@@ -42,7 +42,7 @@ test('globe has a usable fallback when WebGL is unavailable',async({page})=>{
 test('map and crew screens stay within narrow and landscape viewports',async({page})=>{
   for(const viewport of [{width:320,height:640},{width:390,height:844},{width:768,height:1024},{width:844,height:390}]){
     await page.setViewportSize(viewport);
-    await page.goto('/?view=world');
+    await page.goto('/?view=world');await page.getByRole('button',{name:'3D globe',exact:true}).click();
     await expect(page.getByTestId('earth-globe').locator('canvas')).toBeVisible({timeout:30000});
     await page.locator('.atlas-canvas-wrap').screenshot({path:`/tmp/odyssey-globe-${viewport.width}.png`});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth),`No horizontal overflow at ${viewport.width}px`).toBe(viewport.width);
@@ -56,7 +56,7 @@ test('new atlas and crew controls pass accessibility checks',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
   for(const view of ['world','crew']){
     await page.goto(`/?view=${view}`);
-    await expect(page.locator(view==='world'?'.globe-webgl':'.fleet-card').first()).toBeVisible();
+    await expect(page.locator(view==='world'?'.atlas-canvas':'.fleet-card').first()).toBeVisible();
     const result=await new AxeBuilder({page}).include(view==='world'?'.atlas-page':'.fleet-view').analyze();
     expect(result.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))).toEqual([]);
   }
@@ -66,7 +66,7 @@ test('new atlas and crew controls pass accessibility checks',async({page})=>{
 test('map labels and controls stay separate at phone, tablet and desktop sizes',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
   for(const viewport of [{width:320,height:640},{width:390,height:844},{width:768,height:1024},{width:1440,height:900},{width:844,height:390}]){
-    await page.setViewportSize(viewport);await page.goto('/?view=world');
+    await page.setViewportSize(viewport);await page.goto('/?view=world');await page.getByRole('button',{name:'3D globe',exact:true}).click();
     const canvas=page.locator('.globe-webgl');await expect(canvas).toBeVisible();
     await expect(page.locator('.globe-place-label:visible')).toHaveCount(1);
     for(let z=0;z<4;z++){
