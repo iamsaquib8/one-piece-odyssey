@@ -1,3 +1,4 @@
+import { coverage } from '../data/coverage';
 import { useDeferredValue, useMemo, useRef, useState, type ChangeEvent, type CSSProperties } from 'react';
 import { ArrowRight, Bookmark, Compass, Search, ShipWheel, Users, X } from 'lucide-react';
 import type { ReaderState } from '../types';
@@ -87,13 +88,13 @@ export default function CrewView({ reader, onOpen, onSave, onMakePoster }: CrewV
       <div className="fleet-hero-copy">
         <span className="micro">FIELD GUIDE 04 · THE PEOPLE WHO MOVE THE ERA</span>
         <h1 id="crew-title">A fleet of<br /><i>crossed courses.</i></h1>
-        <p>{horizon===null?<>From one borrowed hat to the powers contesting the final sea: {crews.length} crews and factions, ordered by their weight in the story. Relevance describes narrative reach, not strength. Profiles cover through chapter {crewCoverageThrough}.</>:<>Crews and factions revealed through your completed arcs. Records grow as you move the reading horizon.</>}</p>
+        <p>{horizon===null?<>From one borrowed hat to the powers contesting the final sea: {crews.length} crews and factions, ordered by their weight in the story. Relevance describes narrative reach, not strength. Crew profiles were last reviewed at chapter {crewCoverageThrough}; the story itself runs to chapter {coverage.coveredThrough}.</>:<>Crews and factions revealed through your completed arcs. Records grow as you move the reading horizon.</>}</p>
         {onMakePoster ? <button className="button fleet-poster-cta" type="button" onClick={onMakePoster}>Make your own wanted poster</button> : null}
       </div>
       <div className="fleet-compass" aria-hidden="true">
         <Compass />
         <span>{horizon===null?crewCoverageThrough:horizon}</span>
-        <small>CHAPTER<br />HORIZON</small>
+        <small>{horizon===null?<>PROFILES<br />REVIEWED</>:<>CHAPTER<br />HORIZON</>}</small>
       </div>
       <dl className="fleet-stats">
         <div><dt>{crews.filter((crew) => crew.category !== 'factions').length}</dt><dd>Pirate crews</dd></div>

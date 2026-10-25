@@ -135,3 +135,4 @@
 .globe-ambient-grid{opacity:.35;filter:sepia(1) saturate(.4) brightness(.5)}
 .globe-place-label{color:var(--ink);background:#f6ecd2f0;border:1.5px solid var(--ink);font-family:Georgia,serif;font-weight:700}
 .globe-fallback,.globe-loading{background:#e9d9b0;color:var(--ink)}
+.atlas-map-status span,.atlas-map-help .atlas-map-hint{color:var(--ink-soft)}

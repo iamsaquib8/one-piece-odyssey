@@ -1,0 +1,24 @@
+/* Discover hub and the journey page's "More to explore" strip (DiscoverHub.tsx). */
+.feature-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; margin: 0; padding: 24px clamp(20px, 4vw, 56px); list-style: none; }
+.feature-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 16px; width: 100%; height: 100%; padding: 18px; text-align: left; color: var(--ink); background: var(--paper); border: 2px solid var(--ink); border-top: 6px solid var(--feature-tone); border-radius: var(--radius); box-shadow: var(--shadow-ink); cursor: pointer; }
+.feature-card:hover, .feature-card:focus-visible { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.feature-icon { display: grid; place-items: center; width: 56px; height: 56px; color: var(--paper); background: var(--feature-tone); border: 2px solid var(--ink); border-radius: 50%; }
+.feature-copy { display: grid; gap: 4px; min-width: 0; }
+.feature-copy strong { font-size: 18px; }
+.feature-copy > span { color: var(--ink-soft); font-size: 14px; line-height: 1.4; }
+.feature-copy small { font-family: var(--font-utility); font-size: 9px; letter-spacing: .04em; color: var(--ink-soft); text-transform: uppercase; }
+.feature-cards.is-compact { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; padding: 0; }
+.feature-cards.is-compact .feature-card { padding: 12px 14px; gap: 12px; }
+.feature-cards.is-compact .feature-icon { width: 44px; height: 44px; }
+.feature-cards.is-compact .feature-copy strong { font-size: 16px; }
+.explore-strip { display: grid; gap: 14px; padding: 22px clamp(20px, 4vw, 56px) 26px; background: var(--paper-2); border-bottom: 2px solid var(--ink); }
+.explore-strip-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; color: var(--ink); }
+.explore-strip-heading h2 { margin: 0; font-size: 22px; font-style: italic; font-weight: 900; }
+.explore-strip-heading button { padding: 0; font: inherit; font-weight: 700; color: var(--ink); background: none; border: 0; border-bottom: 2px solid var(--coral); cursor: pointer; }
+@media (max-width: 760px) {
+  /* On phones the strip scrolls sideways rather than pushing the voyage four cards down. */
+  .feature-cards.is-compact { grid-auto-flow: column; grid-auto-columns: minmax(240px, 78vw); grid-template-columns: none; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; }
+  .feature-cards.is-compact li { scroll-snap-align: start; }
+}
+.discover-hub-empty { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 24px clamp(20px, 4vw, 56px) 0; padding: 16px; color: var(--ink); background: var(--paper); border: 2px dashed var(--ink-soft); border-radius: var(--radius); }
+.discover-hub-empty p { margin: 0; flex: 1 1 320px; }

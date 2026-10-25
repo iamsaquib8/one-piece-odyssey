@@ -112,9 +112,11 @@ test('header reading settings dismiss cleanly and empty discovery can reopen the
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/');
   await expect(page.locator('.hero')).toBeInViewport();
-  const headerBox = await page.locator('.site-header').boundingBox();
-  const motionBox = await page.locator('.motion-toggle').boundingBox();
-  expect(motionBox!.y + motionBox!.height).toBeLessThanOrEqual(headerBox!.y + headerBox!.height);
+  // On phones the animation switch moves out of the header and into reading settings, with words.
+  await expect(page.locator('.motion-toggle')).toBeHidden();
+  await page.locator('.reading-settings > summary').click();
+  await expect(page.getByRole('checkbox', { name: /Animations/ })).toBeVisible();
+  await page.locator('.reading-settings > summary').click();
   await expect(page.locator('main > .reading-controls')).toHaveCount(0);
   const input = await progressControl(page);
   await input.selectOption('0');

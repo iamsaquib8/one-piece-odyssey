@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Cherry, ChevronDown, Coins, MapPinned, Route as RouteIcon, ScrollText, Search, ShieldCheck, X } from 'lucide-react';
+import { Cherry, ChevronDown, Coins, LayoutGrid, MapPinned, Route as RouteIcon, ScrollText, Search, ShieldCheck, X } from 'lucide-react';
 import { arcSummaries } from '../data/arc-index';
 import type { View } from '../types';
 
-interface Props { through: number | null; onChange: (through: number | null) => void }
+interface Props { through: number | null; onChange: (through: number | null) => void; motion: boolean; onMotion: (on: boolean) => void }
 
 export function focusReadingProgress() {
   const input = document.getElementById('reading-horizon');
@@ -12,7 +12,7 @@ export function focusReadingProgress() {
   input?.focus();
 }
 
-export function ReadingControls({ through, onChange }: Props) {
+export function ReadingControls({ through, onChange, motion, onMotion }: Props) {
   const host = useRef<HTMLDetailsElement>(null);
   function close() {
     if (!host.current) return;
@@ -46,12 +46,15 @@ export function ReadingControls({ through, onChange }: Props) {
         <span id="reading-limit-status" className="reading-limit-status">{through === null ? 'Full spoilers are on. Choose your last completed arc.' : 'Later details hidden · saved on this device'}</span>
       </div>
     </div>
+    {/* The header's animation button is icon-only and hidden on phones, so the setting lives here too, with words. */}
+    <label className="reading-motion"><input type="checkbox" checked={motion} onChange={(e) => onMotion(e.target.checked)} /><span><strong>Animations</strong><small>{motion ? 'On: scenes move, battles play' : 'Off: layout only, nothing moves'}</small></span></label>
     </section>
   </details>;
 }
 
 export function DiscoveryNavigation({ view, onNavigate }: { view: View; onNavigate: (view: View) => void }) {
   return <nav className="discovery-nav" aria-label="Story discoveries">
+      <button className={view === 'discover' ? 'active' : ''} aria-current={view === 'discover' ? 'page' : undefined} onClick={() => onNavigate('discover')}><LayoutGrid size={18} /> All tools</button>
       <button className={view === 'trails' ? 'active' : ''} aria-current={view === 'trails' ? 'page' : undefined} onClick={() => onNavigate('trails')}><RouteIcon size={18} /> Character journeys</button>
       <button className={view === 'mysteries' ? 'active' : ''} aria-current={view === 'mysteries' ? 'page' : undefined} onClick={() => onNavigate('mysteries')}><Search size={18} /> Mystery board</button>
       <button className={view === 'bounties' ? 'active' : ''} aria-current={view === 'bounties' ? 'page' : undefined} onClick={() => onNavigate('bounties')}><Coins size={18} /> Bounty board</button>
