@@ -78,7 +78,7 @@ export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route
   const stop=voyageStops[step];
   const effectiveMotion=motion&&visible&&!route.kind;
   const zoom=camera.zoom,w=ATLAS_WIDTH/zoom,h=ATLAS_HEIGHT/zoom;
-  const scale=Math.min(size.width/w,size.height/h);
+  const scale=Math.max(1e-3,Math.min(size.width/w,size.height/h));
   const markerScale=Math.min(1.3,Math.max(.64,1/zoom));
   const filtered=useMemo(()=>atlasPlaces.filter(p=>{
     const inRegion=region==='all'||p.region===region;
@@ -113,7 +113,8 @@ export default function WorldAtlas({motion,reader,onOpen,onNavigate,onSave,route
   },[atlasPlaces,horizon,placeById,selected]);
   useEffect(()=>{
     if(!svgRef.current)return;
-    const ro=new ResizeObserver(([e])=>setSize({width:e.contentRect.width,height:e.contentRect.height}));ro.observe(svgRef.current);
+    // A hidden or detaching chart reports 0×0; keep the last real size rather than dividing by zero.
+    const ro=new ResizeObserver(([e])=>{if(e.contentRect.width>0&&e.contentRect.height>0)setSize({width:e.contentRect.width,height:e.contentRect.height});});ro.observe(svgRef.current);
     const io=new IntersectionObserver(([e])=>setVisible(e.isIntersecting));io.observe(svgRef.current);
     return ()=>{ro.disconnect();io.disconnect();cancelAnimationFrame(frameRef.current);};
   },[mode]);
