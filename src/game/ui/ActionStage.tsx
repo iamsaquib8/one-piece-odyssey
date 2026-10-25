@@ -29,7 +29,7 @@ const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
 /** Progress through a window of the beat, eased. */
 const span = (p: number, from: number, to: number) => ease(clamp01((p - from) / (to - from)));
 
-type Move = 'stretch' | 'punch' | 'slash' | 'kick' | 'shot' | 'steal' | 'heavy' | 'guard' | 'miss';
+type Move = 'stretch' | 'punch' | 'slash' | 'kick' | 'shot' | 'steal' | 'heavy' | 'guard' | 'miss' | 'heal' | 'revive' | 'bloom' | 'beam' | 'drill';
 
 /** Which choreography a blow plays. */
 function moveOf(blow: Blow): Move {
@@ -37,6 +37,8 @@ function moveOf(blow: Blow): Move {
   if (blow.kind === 'miss') return 'miss';
   if (blow.kind === 'heavy') return 'heavy';
   if (blow.kind === 'steal') return 'steal';
+  if (blow.kind === 'heal') return 'heal';
+  if (blow.kind === 'revive') return 'revive';
   if (blow.side === 'b') return 'punch';
   const special = blow.kind === 'special';
   switch (blow.actorId) {
@@ -44,19 +46,32 @@ function moveOf(blow: Blow): Move {
     case 'zoro': return 'slash';
     case 'sanji': return 'kick';
     case 'usopp': return 'shot';
+    case 'brook': return 'slash';
+    case 'robin': return special ? 'bloom' : 'punch';
+    case 'franky': return special ? 'beam' : 'punch';
+    case 'jinbe': return special ? 'drill' : 'punch';
     default: return 'punch';
   }
 }
 
-/** Where each fighter stands at rest: the crew on the left, foes on the right, a little staggered. */
+/**
+ * Where each fighter stands at rest: the crew on the left, foes on the right, a little staggered.
+ * A big crew forms two rows, the back row smaller and higher up the deck.
+ */
 function homes(list: Fighter[], side: 'a' | 'b') {
-  return new Map(list.map((f, i) => [f.id, { x: side === 'a' ? 140 - i * 34 : W - 140 + i * 34, y: GROUND - (i % 2) * 8 }]));
+  const front = Math.min(list.length, 5);
+  return new Map(list.map((f, i) => {
+    const back = i >= front;
+    const slot = back ? i - front : i;
+    const x = (back ? 129 : 144) - slot * (front > 1 ? Math.min(34, 120 / (front - 1)) : 0);
+    return [f.id, { x: side === 'a' ? x : W - x, y: back ? GROUND - 24 : GROUND - (i % 2) * 6, scale: back ? .8 : 1 }];
+  }));
 }
 
 interface Pose { dx: number; dy: number; lean: number; arm: number; leg: number; flash: number; spin: number; faded: boolean }
 const REST: Pose = { dx: 0, dy: 0, lean: 0, arm: 0, leg: 0, flash: 0, spin: 0, faded: false };
 
-const Puppet = memo(function Puppet({ f, x, y, pose, facing, color }: { f: Fighter; x: number; y: number; pose: Pose; facing: 1 | -1; color: string }) {
+const Puppet = memo(function Puppet({ f, x, y, scale = 1, pose, facing, color }: { f: Fighter; x: number; y: number; scale?: number; pose: Pose; facing: 1 | -1; color: string }) {
   const down = f.hp <= 0;
   const bx = x + pose.dx, by = y + pose.dy;
   // Arm reach is in stage units: a rubber arm can be 200 long, a normal punch about 18.
@@ -65,7 +80,7 @@ const Puppet = memo(function Puppet({ f, x, y, pose, facing, color }: { f: Fight
   const hip = { x: bx, y: by - 14 };
   const kickAngle = pose.leg * Math.PI / 2;
   const foot = { x: hip.x + facing * Math.sin(kickAngle) * 22, y: hip.y + Math.cos(kickAngle) * 18 };
-  return <g className={`as-puppet ${down ? 'is-down' : ''}`} transform={`rotate(${(down ? 80 * facing : pose.lean * facing) + pose.spin} ${bx} ${by})`} opacity={pose.faded ? .35 : 1}>
+  return <g className={`as-puppet ${down ? 'is-down' : ''}`} transform={`translate(${x} ${y}) scale(${scale}) translate(${-x} ${-y}) rotate(${(down ? 80 * facing : pose.lean * facing) + pose.spin} ${bx} ${by})`} opacity={pose.faded ? .35 : 1}>
     <ellipse cx={bx} cy={y + 2} rx={16} ry={4} fill="#10243a" opacity=".25" />
     <path d={`M${hip.x} ${hip.y}L${hip.x - facing * 6} ${by}`} stroke="#10243a" strokeWidth="5" strokeLinecap="round" />
     <path d={`M${hip.x} ${hip.y}L${foot.x} ${foot.y}`} stroke="#10243a" strokeWidth="5" strokeLinecap="round" />
@@ -86,15 +101,17 @@ export default function ActionStage({ crew, foes, blow, progress: p, locationId,
   let shake = 0;
 
   if (blow) {
-    const move = moveOf(blow);
     const attackerHome = (blow.side === 'a' ? a : b).get(blow.actorId);
-    const targetHome = blow.targetId ? (blow.side === 'a' ? b : a).get(blow.targetId) : undefined;
+    const move = moveOf(blow);
+    // Healing lands on the actor's own side; everything else crosses the stage.
+    const friendly = move === 'heal' || move === 'revive';
+    const targetHome = blow.targetId ? (blow.side === 'a' ? friendly ? a : b : friendly ? b : a).get(blow.targetId) : undefined;
     const dir = blow.side === 'a' ? 1 : -1;
     const gap = attackerHome && targetHome ? Math.abs(targetHome.x - attackerHome.x) : 160;
     const impact = span(p, .44, .5);
     const after = span(p, .5, .7);
     const back = span(p, .7, 1);
-    const hit = p > .46 && blow.amount > 0;
+    const hit = p > .46 && blow.amount > 0 && !friendly;
     const pose: Pose = { ...REST };
 
     if (move === 'stretch') {
@@ -114,7 +131,9 @@ export default function ActionStage({ crew, foes, blow, progress: p, locationId,
       pose.dx = dir * (gap + 30) * (span(p, .3, .4) - back);
       pose.faded = p > .3 && p < .4;
       pose.lean = 20 * span(p, .3, .4) * (1 - back);
-      if (p > .4 && p < .85 && targetHome) [-.6, 0, .6].forEach((tilt, i) => fx.push(<path key={`slash${i}`} d={`M${targetHome.x - 28} ${GROUND - 56 + i * 14 + tilt * 10}Q${targetHome.x} ${GROUND - 70 + i * 14} ${targetHome.x + 28} ${GROUND - 40 + i * 14 - tilt * 10}`} fill="none" stroke="#e8f4ff" strokeWidth={4 - i} strokeLinecap="round" opacity={1 - span(p, .55, .85)} />));
+      // Brook's cuts leave frost rather than steel.
+      const edge = blow.actorId === 'brook' ? '#8fd8ff' : '#e8f4ff';
+      if (p > .4 && p < .85 && targetHome) [-.6, 0, .6].forEach((tilt, i) => fx.push(<path key={`slash${i}`} d={`M${targetHome.x - 28} ${GROUND - 56 + i * 14 + tilt * 10}Q${targetHome.x} ${GROUND - 70 + i * 14} ${targetHome.x + 28} ${GROUND - 40 + i * 14 - tilt * 10}`} fill="none" stroke={edge} strokeWidth={4 - i} strokeLinecap="round" opacity={1 - span(p, .55, .85)} />));
     } else if (move === 'kick') {
       // A spinning approach, the leg swinging up into the blow; the special leaves a flame trail.
       pose.dx = dir * (gap - 30) * (span(p, .1, .4) - back);
@@ -141,6 +160,32 @@ export default function ActionStage({ crew, foes, blow, progress: p, locationId,
       pose.arm = 16 * span(p, .3, .46) * (1 - back);
       if (p > .46 && targetHome) fx.push(<ellipse key="shock" cx={targetHome.x} cy={GROUND} rx={20 + 70 * after} ry={6 + 10 * after} fill="none" stroke="#fff" strokeWidth="3" opacity={1 - after} />);
       shake = hit ? 1 - after : 0;
+    } else if (move === 'heal' || move === 'revive') {
+      // The doctor hops to the patient; Brook plays and the fallen get back up. Crosses or notes rise.
+      if (move === 'heal') pose.dx = targetHome && attackerHome ? (targetHome.x - attackerHome.x + 22) * (span(p, .1, .35) - back) : 0;
+      pose.dy = -8 * Math.abs(Math.sin(p * Math.PI * 4));
+      if (blow.targetId && move === 'revive') poses.set(blow.targetId, { ...REST, dy: -6 * span(p, .4, .6) * (1 - back) });
+      if (targetHome && p > .35) for (let i = 0; i < 4; i++) fx.push(<text key={`mend${i}`} x={targetHome.x - 18 + i * 12} y={GROUND - 50 - span(p, .35 + i * .05, .9) * 50} textAnchor="middle" fontSize="14" fontWeight="900" fill={move === 'heal' ? '#7be08a' : '#ffe27a'} stroke="#10243a" strokeWidth="1" opacity={1 - back}>{move === 'heal' ? '+' : '♪'}</text>);
+      if (targetHome && p > .4) fx.push(<circle key="glow" cx={targetHome.x} cy={GROUND - 40} r={30} fill={move === 'heal' ? '#7be08a' : '#ffe27a'} opacity={.3 * (1 - after)} />);
+    } else if (move === 'bloom') {
+      // Robin stays where she is; arms bloom from the ground around her target and clutch.
+      pose.lean = -4;
+      if (targetHome && p > .2) for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        const grow = span(p, .2 + i * .03, .45);
+        fx.push(<g key={`arm${i}`} opacity={1 - back}><path d={`M${targetHome.x + Math.cos(angle) * 26} ${GROUND - 34 + Math.sin(angle) * 22}l${-Math.cos(angle) * 14 * grow} ${-Math.sin(angle) * 12 * grow}`} stroke="#c78a8a" strokeWidth="4" strokeLinecap="round" /><circle cx={targetHome.x + Math.cos(angle) * 26} cy={GROUND - 34 + Math.sin(angle) * 22} r={4 * grow} fill="#ff9fc0" /></g>);
+      }
+    } else if (move === 'beam') {
+      // Franky braces and fires from both arms.
+      pose.lean = -6 * span(p, .1, .3);
+      pose.arm = 14 * span(p, .1, .3) * (1 - back);
+      if (attackerHome && targetHome && p > .32 && p < .7) fx.push(<path key="beam" d={`M${attackerHome.x + 24} ${GROUND - 36}L${targetHome.x} ${GROUND - 38}`} stroke="#7fe8ff" strokeWidth={6 + 6 * (1 - span(p, .45, .7))} strokeLinecap="round" opacity={.85} />);
+    } else if (move === 'drill') {
+      // Jinbe spins in fist-first; rings of water burst from the hit.
+      pose.dx = dir * (gap - 34) * (span(p, .12, .42) - back);
+      pose.arm = 20 * span(p, .3, .44) * (1 - back);
+      pose.spin = dir * 180 * span(p, .12, .42) * (1 - span(p, .42, .6));
+      if (targetHome && p > .44) [0, 1, 2].forEach((i) => fx.push(<circle key={`ring${i}`} cx={targetHome.x - dir * 6} cy={GROUND - 40} r={10 + 26 * span(p, .44 + i * .05, .8)} fill="none" stroke="#6fc6ff" strokeWidth={3 - i * .6} opacity={1 - span(p, .6, .9)} />));
     } else if (move === 'guard') {
       pose.lean = -6;
       const home = attackerHome;
@@ -164,7 +209,7 @@ export default function ActionStage({ crew, foes, blow, progress: p, locationId,
       if (blow.kind === 'crit') shake = Math.max(shake, 1 - after);
     }
     // Speed lines while the attacker is in the air or dashing.
-    if (p > .15 && p < .46 && move !== 'guard' && move !== 'shot') for (let i = 0; i < 6; i++) fx.push(<path key={`speed${i}`} d={`M${blow.side === 'a' ? 0 : W} ${40 + i * 22}h${dir * (60 + (i % 3) * 30)}`} stroke="#fff" strokeWidth="2" opacity=".35" />);
+    if (p > .15 && p < .46 && !['guard', 'shot', 'heal', 'revive', 'bloom', 'beam'].includes(move)) for (let i = 0; i < 6; i++) fx.push(<path key={`speed${i}`} d={`M${blow.side === 'a' ? 0 : W} ${40 + i * 22}h${dir * (60 + (i % 3) * 30)}`} stroke="#fff" strokeWidth="2" opacity=".35" />);
   }
 
   // Back rows first, the attacker last, so the move plays in front of everyone.
@@ -175,7 +220,7 @@ export default function ActionStage({ crew, foes, blow, progress: p, locationId,
     {locationId ? <div className="as-backdrop"><Scene locationId={locationId} name="" eager /></div> : null}
     <svg className="as-svg" viewBox={`0 0 ${W} 200`} preserveAspectRatio="xMidYMax meet" role="img" aria-label={blow?.label ?? 'The crew faces its foes'}>
       <g transform={`translate(${sx} ${shake ? Math.cos(p * 70) * 3 * shake : 0})`}>
-        {order.map(({ f, side }) => { const h = (side === 'a' ? a : b).get(f.id)!; return <Puppet key={f.id} f={f} x={h.x} y={h.y} pose={poses.get(f.id) ?? REST} facing={side === 'a' ? 1 : -1} color={colors(f.id)} />; })}
+        {order.map(({ f, side }) => { const h = (side === 'a' ? a : b).get(f.id)!; return <Puppet key={f.id} f={f} x={h.x} y={h.y} scale={h.scale} pose={poses.get(f.id) ?? REST} facing={side === 'a' ? 1 : -1} color={colors(f.id)} />; })}
         {fx}
       </g>
     </svg>

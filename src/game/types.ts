@@ -25,7 +25,8 @@ export interface Chart { sagaId: string; nodes: ChartNode[]; columns: number }
 
 export interface CrewMember { id: string; hp: number; maxHp: number }
 
-export interface Ship { kind: 'dinghy' | 'merry'; hull: number; maxHull: number }
+export type ShipKind = 'dinghy' | 'merry' | 'sunny';
+export interface Ship { kind: ShipKind; hull: number; maxHull: number }
 
 export interface Fighter {
   id: string;
@@ -39,6 +40,8 @@ export interface Fighter {
   maxStamina: number;
   guard: number;
   weakened: number;
+  /** A friend from the story who fights beside the crew for this one battle. */
+  guest?: boolean;
 }
 
 export type IntentKind = 'attack' | 'heavy' | 'guard';
@@ -51,7 +54,8 @@ export interface Blow {
   targetId?: string;
   side: 'a' | 'b';
   amount: number;
-  kind: 'hit' | 'crit' | 'guard' | 'special' | 'heavy' | 'miss' | 'steal';
+  /** `heal` and `revive` land on the actor's own side. */
+  kind: 'hit' | 'crit' | 'guard' | 'special' | 'heavy' | 'miss' | 'steal' | 'heal' | 'revive';
   label: string;
   impact?: string;
 }
@@ -71,6 +75,8 @@ export interface BattleState {
   /** The last round's blows, in order, for the battle screen to play back. */
   blows?: Blow[];
   result?: 'win' | 'lose';
+  /** Brook's once-a-battle revive has been used. */
+  revived?: boolean;
 }
 
 export interface EventChoice { id: string; label: string; hint?: string }
@@ -106,6 +112,10 @@ export interface GameState {
   phase: Phase;
   log: string[];
   turns: number;
+  /** Retreats from each battle stop: every one softens that fight a little, so no wall is permanent. */
+  retreats?: Record<string, number>;
+  /** Sagas finished on this voyage, in order. Missing in saves from before the campaign. */
+  sagasDone?: string[];
 }
 
 export type GameAction =
@@ -116,4 +126,5 @@ export type GameAction =
   | { type: 'unplan'; actorId: string }
   | { type: 'fight' }
   | { type: 'buy'; itemId: string }
-  | { type: 'leave' };
+  | { type: 'leave' }
+  | { type: 'next-saga' };

@@ -1,36 +1,56 @@
-// Turn-based battles. Each round the player plans up to two crew actions; foes have already shown
+// Turn-based battles. Each round the player plans a few crew actions; foes have already shown
 // what they intend to do. Resolution produces a list of blows that the battle screen plays back
 // one at a time, so the simulation and its animation never disagree.
 import { stagingFor } from '../data/staging';
 import { arcs } from '../data/arcs';
-import { CREW } from './crew';
+import { CREW, growth, specialFor } from './crew';
 import { Dice } from './rng';
 import type { BattleState, Blow, CrewMember, Fighter, Intent, PlannedAction } from './types';
 export type { Blow };
 
-
-export const MAX_ACTIONS = 2;
-const STAMINA_START = 2;
-const STAMINA_MAX = 4;
-
 const alive = (f: Fighter) => f.hp > 0;
 
-/** Crew stats grow gently with the story's position, so later arcs are not a stat wall. */
+/** Moves per round: two, or three once the crew is big enough to need it. */
+export const maxActions = (battle: Pick<BattleState, 'crew'>) => battle.crew.filter(alive).length >= 6 ? 3 : 2;
+const STAMINA_START = 2;
+// Foe growth along the story: gentle in the East Blue, steep in the New World, where the crew is
+// large and strong. Tuned with the campaign bot in engine.test.ts.
+const foeHp = (tier: number) => 29 + tier * 5.5 + tier * tier * .03;
+const foeAtk = (tier: number) => 5.5 + tier + tier * tier * .022;
+const STAMINA_MAX = 4;
+
+/** Crew strength grows with the story's position; health grows as the crew levels up between sagas. */
 export function crewFighter(member: CrewMember, tier: number): Fighter {
   const spec = CREW[member.id];
-  return { id: member.id, name: spec.name, side: 'crew', hp: member.hp, maxHp: member.maxHp, atk: Math.round(spec.atk * (1 + tier * .04)), def: spec.def, stamina: STAMINA_START, maxStamina: STAMINA_MAX, guard: 0, weakened: 0 };
+  return { id: member.id, name: spec.name, side: 'crew', hp: member.hp, maxHp: member.maxHp, atk: Math.round(spec.atk * growth(tier)), def: spec.def + Math.floor(tier / 8), stamina: STAMINA_START, maxStamina: STAMINA_MAX, guard: 0, weakened: 0 };
 }
 
-/** Foes come from the battle's staging; the first of them leads, and a boss lead hits hardest. */
-export function buildFoes(arcId: string, battleId: string, tier: number, boss: boolean): Fighter[] {
+/** A story ally on the crew's side of a staged battle (Vivi at Little Garden, Law at Dressrosa) joins in. */
+export function buildGuests(arcId: string, battleId: string, tier: number, crewIds: string[]): Fighter[] {
+  const staging = stagingFor(arcId);
+  const cast = new Map((staging?.cast ?? []).map((c) => [c.id, c]));
+  const id = (staging?.battles[battleId]?.a ?? []).find((id) => !CREW[id] && cast.get(id)?.side === 'ally' && !(id === 'jinbe-knight' && crewIds.includes('jinbe')));
+  if (!id) return [];
+  const hp = Math.round(46 * growth(tier));
+  return [{ id, name: cast.get(id)!.name.split(' ').pop()!, side: 'crew', hp, maxHp: hp, atk: Math.round(9 * growth(tier)), def: 2 + Math.floor(tier / 8), stamina: STAMINA_START, maxStamina: STAMINA_MAX, guard: 0, weakened: 0, guest: true }];
+}
+
+/**
+ * Foes come from the battle's staging; the first of them leads, and a boss lead hits hardest.
+ * `party` is how many fight on the crew's side: a lone Luffy at Impel Down meets foes sized for one.
+ */
+export function buildFoes(arcId: string, battleId: string, tier: number, boss: boolean, party = 4, difficulty = 1): Fighter[] {
   const staging = stagingFor(arcId);
   const ids = (staging?.battles[battleId]?.b ?? []).filter((id) => !CREW[id]).slice(0, 3);
   const names = new Map((staging?.cast ?? []).map((c) => [c.id, c.name]));
   const list = ids.length ? ids : ['thug'];
+  // The crew's damage per round is set by how many can act, its staying power by how many stand.
+  const toughness = (party >= 6 ? 3 : party >= 2 ? 2 : .8) / 2;
+  const menace = Math.max(.5, Math.min(1.4, Math.sqrt(party / 4)));
   return list.map((id, i) => {
     const lead = i === 0;
-    const hp = Math.round((29 + tier * 5.5) * (boss ? (lead ? 2.5 : 1.15) : lead ? 1.2 : .72));
-    const atk = Math.round((5.5 + tier * 1) * (boss && lead ? 1.4 : lead ? 1.1 : .88));
+    const hp = Math.round(foeHp(tier) * (boss ? (lead ? 2.5 : 1.15) : lead ? 1.2 : .72) * toughness * difficulty);
+    const atk = Math.round(foeAtk(tier) * (boss && lead ? 1.4 : lead ? 1.1 : .88) * menace * difficulty);
     return { id, name: names.get(id) ?? 'Pirate', side: 'foe' as const, hp, maxHp: hp, atk, def: 1 + Math.floor(tier / 6), stamina: 0, maxStamina: 0, guard: 0, weakened: 0 };
   });
 }
@@ -45,9 +65,11 @@ export function rollIntents(battle: Pick<BattleState, 'crew' | 'foes'>, dice: Di
   });
 }
 
-export function startBattle(nodeId: string, arcId: string, battleId: string, boss: boolean, crew: CrewMember[], tier: number, dice: Dice): BattleState {
+export function startBattle(nodeId: string, arcId: string, battleId: string, boss: boolean, crew: CrewMember[], tier: number, dice: Dice, difficulty = 1): BattleState {
   const fighters = crew.filter((m) => m.hp > 0).map((m) => crewFighter(m, tier));
-  const battle: BattleState = { nodeId, arcId, battleId, boss, round: 1, crew: fighters, foes: buildFoes(arcId, battleId, tier, boss), intents: [], planned: [] };
+  const guests = buildGuests(arcId, battleId, tier, crew.map((m) => m.id));
+  const party = fighters.length + guests.length;
+  const battle: BattleState = { nodeId, arcId, battleId, boss, round: 1, crew: [...fighters, ...guests], foes: buildFoes(arcId, battleId, tier, boss, party, difficulty), intents: [], planned: [] };
   battle.intents = rollIntents(battle, dice);
   return battle;
 }
@@ -58,7 +80,7 @@ const damage = (atk: number, mult: number, def: number, guarded: boolean) => Mat
 export function canAct(battle: BattleState, action: PlannedAction): boolean {
   const actor = battle.crew.find((c) => c.id === action.actorId);
   if (!actor || !alive(actor) || battle.result) return false;
-  if (action.kind === 'special' && actor.stamina < CREW[actor.id].special.cost) return false;
+  if (action.kind === 'special' && actor.stamina < specialFor(actor.id, battle.arcId).cost) return false;
   return true;
 }
 
@@ -88,24 +110,38 @@ export function resolveRound(input: BattleState, dice: Dice): { battle: BattleSt
       blows.push({ actorId: actor.id, targetId: foe.id, side: 'a', amount, kind: crit ? 'crit' : 'hit', label: `${actor.name} hits ${foe.name}${crit ? ' — critical!' : ''}`, impact: crit ? 'CRITICAL!' : dice.pick(['WHAM!', 'BAM!', 'THWACK!']) });
       continue;
     }
-    const spec = CREW[actor.id].special;
+    const spec = specialFor(actor.id, battle.arcId);
     actor.stamina -= spec.cost;
     const hit = (f: Fighter, mult: number) => { const amount = damage(actor.atk, mult, f.def, battle.intents.some((i) => i.foeId === f.id && i.kind === 'guard')); f.hp = Math.max(0, f.hp - amount); return amount; };
+    const special = (impact: string, label = `${spec.name} on ${foe.name}`) => blows.push({ actorId: actor.id, targetId: foe.id, side: 'a', amount: hit(foe, spec.power), kind: 'special', label, impact });
     if (actor.id === 'zoro') {
-      for (const f of battle.foes.filter(alive)) blows.push({ actorId: actor.id, targetId: f.id, side: 'a', amount: hit(f, 1.2), kind: 'special', label: `${spec.name} cuts ${f.name}`, impact: 'SLASH!' });
+      for (const f of battle.foes.filter(alive)) blows.push({ actorId: actor.id, targetId: f.id, side: 'a', amount: hit(f, spec.power), kind: 'special', label: `${spec.name} cuts ${f.name}`, impact: 'SLASH!' });
     } else if (actor.id === 'nami') {
-      const amount = hit(foe, .6);
+      const amount = hit(foe, spec.power);
       foe.weakened = 2;
       const stolen = dice.int(15, 40);
       berries += stolen;
       blows.push({ actorId: actor.id, targetId: foe.id, side: 'a', amount, kind: 'steal', label: `${spec.name}: ${foe.name} is weakened, ฿${stolen} lifted`, impact: 'SWIPE!' });
     } else if (actor.id === 'usopp') {
-      const amount = hit(foe, 1.3);
       cancelled.add(foe.id);
-      blows.push({ actorId: actor.id, targetId: foe.id, side: 'a', amount, kind: 'special', label: `${spec.name} stuns ${foe.name}`, impact: 'POW!' });
+      special('POW!', `${spec.name} stuns ${foe.name}`);
+    } else if (actor.id === 'robin') {
+      cancelled.add(foe.id);
+      foe.weakened = Math.max(foe.weakened, 2);
+      special('CLUTCH!', `${spec.name} holds ${foe.name}`);
+    } else if (actor.id === 'brook') {
+      foe.weakened = Math.max(foe.weakened, 2);
+      special('CHILL!', `${spec.name} freezes ${foe.name}`);
+    } else if (actor.id === 'jinbe') {
+      actor.guard = 1;
+      special('DRILL!');
+    } else if (actor.id === 'chopper') {
+      const hurt = [...battle.crew.filter(alive)].sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0];
+      const healed = Math.min(hurt.maxHp - hurt.hp, Math.round(hurt.maxHp * spec.power));
+      hurt.hp += healed;
+      blows.push({ actorId: actor.id, targetId: hurt.id, side: 'a', amount: healed, kind: 'heal', label: `${spec.name} patches up ${hurt.name} (+${healed})` });
     } else {
-      const amount = hit(foe, actor.id === 'luffy' ? 2 : 1.8);
-      blows.push({ actorId: actor.id, targetId: foe.id, side: 'a', amount, kind: 'special', label: `${spec.name} on ${foe.name}`, impact: actor.id === 'luffy' ? 'GUM-GUM!' : 'CRUNCH!' });
+      special(actor.id === 'luffy' ? 'GUM-GUM!' : actor.id === 'franky' ? 'RADICAL!' : actor.guest ? 'ASSIST!' : 'CRUNCH!');
     }
   }
 
@@ -122,6 +158,14 @@ export function resolveRound(input: BattleState, dice: Dice): { battle: BattleSt
     const amount = damage(atk, intent.kind === 'heavy' ? 1.8 : 1, victim.def, victim.guard > 0);
     victim.hp = Math.max(0, victim.hp - amount);
     blows.push({ actorId: foe.id, targetId: victim.id, side: 'b', amount, kind: intent.kind === 'heavy' ? 'heavy' : 'hit', label: `${foe.name} ${intent.kind === 'heavy' ? 'slams' : 'hits'} ${victim.name}`, impact: intent.kind === 'heavy' ? 'DOOM!' : 'CLASH!' });
+    // Brook's song: once a battle, the first crewmate to fall gets back up (Brook included).
+    const brook = battle.crew.find((c) => c.id === 'brook');
+    if (!alive(victim) && brook && (alive(brook) || brook === victim) && !battle.revived) {
+      battle.revived = true;
+      const back = Math.round(victim.maxHp * .3);
+      victim.hp = back;
+      blows.push({ actorId: 'brook', targetId: victim.id, side: 'a', amount: back, kind: 'revive', label: `Brook’s song brings ${victim.name} back up (+${back})` });
+    }
   }
 
   // End of round: guards drop, weakness wears off, idle crew catch their breath.
@@ -132,7 +176,7 @@ export function resolveRound(input: BattleState, dice: Dice): { battle: BattleSt
   if (!battle.foes.some(alive)) battle.result = 'win';
   else if (!battle.crew.some(alive)) battle.result = 'lose';
   else battle.intents = rollIntents(battle, dice);
-  const last = blows.filter((b) => b.amount > 0).at(-1);
+  const last = blows.filter((b) => b.amount > 0 && b.kind !== 'heal' && b.kind !== 'revive').at(-1);
   if (last) battle.lastHit = { side: last.side, impact: last.impact ?? 'WHAM!', key: (input.lastHit?.key ?? 0) + 1 };
   battle.blows = blows;
   return { battle, blows, berries };
@@ -141,11 +185,17 @@ export function resolveRound(input: BattleState, dice: Dice): { battle: BattleSt
 /** A sensible plan for the Auto button and for the balance bot: specials when affordable, on the weakest foe. */
 export function autoPlan(battle: BattleState): PlannedAction[] {
   const weakest = [...battle.foes.filter(alive)].sort((a, b) => a.hp - b.hp)[0];
-  const crew = [...battle.crew.filter(alive)].sort((a, b) => b.atk - a.atk);
-  return crew.slice(0, MAX_ACTIONS).map((c) => {
+  const living = battle.crew.filter(alive);
+  const someoneHurt = living.some((c) => c.hp < c.maxHp * .5);
+  // The doctor steps up when someone is hurt; otherwise the hardest hitters go first.
+  const medic = (c: Fighter) => Number(someoneHurt && c.id === 'chopper');
+  const crew = [...living].sort((a, b) => medic(b) - medic(a) || b.atk - a.atk);
+  return crew.slice(0, maxActions(battle)).map((c) => {
+    const spec = specialFor(c.id, battle.arcId);
     const low = c.hp < c.maxHp * .3;
-    if (low && c.stamina < CREW[c.id].special.cost) return { actorId: c.id, kind: 'guard' as const };
-    return { actorId: c.id, kind: c.stamina >= CREW[c.id].special.cost ? 'special' as const : 'attack' as const, targetId: weakest?.id };
+    if (low && c.stamina < spec.cost) return { actorId: c.id, kind: 'guard' as const };
+    const useSpecial = c.stamina >= spec.cost && (c.id !== 'chopper' || someoneHurt);
+    return { actorId: c.id, kind: useSpecial ? 'special' as const : 'attack' as const, targetId: weakest?.id };
   });
 }
 
