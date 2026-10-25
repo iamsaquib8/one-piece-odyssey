@@ -1,0 +1,24 @@
+/* "Where am I?" (CatchUp.tsx). */
+.catchup-hero { background: #1f5d57; }
+.catchup-form { display: flex; flex-wrap: wrap; align-items: end; gap: 16px 24px; padding: 24px clamp(20px, 4vw, 56px); background: var(--paper); border-bottom: 2px solid var(--ink); }
+.catchup-modes { padding: 0; border: 0; background: none; }
+.catchup-modes button { white-space: nowrap; }
+.catchup-input { display: grid; gap: 6px; font-size: 14px; font-weight: 700; color: var(--ink); }
+.catchup-input input { width: min(240px, 70vw); min-height: 48px; padding: 0 14px; font: inherit; font-size: 20px; font-weight: 800; color: var(--ink); background: #fff; border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: 3px 3px 0 var(--ink); }
+.catchup-result { display: grid; gap: 20px; max-width: 900px; padding: 24px clamp(20px, 4vw, 56px) 0; }
+.catchup-answer { margin: 0; font-size: clamp(18px, 2.2vw, 22px); line-height: 1.45; color: var(--ink); }
+.catchup-limited { display: grid; gap: 12px; justify-items: start; padding: 16px; background: var(--paper); border: 2px dashed var(--ink-mute); border-radius: var(--radius); }
+.catchup-next { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 16px; background: var(--gold); border: 2px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow-ink); }
+.catchup-next strong { font-size: 24px; font-style: italic; font-weight: 900; }
+.catchup-next .button { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; background: var(--paper); }
+.catchup-recap { padding: 20px; background: #fff; border: 2px solid var(--ink); border-radius: var(--radius); }
+.catchup-recap h2 { margin: 0 0 8px; font-size: 24px; }
+.catchup-premise { color: var(--ink-soft); }
+.catchup-beats { display: grid; gap: 18px; margin: 16px 0 0; padding: 0; list-style: none; }
+.catchup-beats li { padding-left: 16px; border-left: 3px solid var(--sea); }
+.catchup-beats h3 { margin: 2px 0 6px; font-size: 18px; }
+.catchup-beats p { margin: 0 0 6px; color: var(--ink-soft); }
+.catchup-current { margin: 18px 0 0; padding: 12px; background: var(--paper); border-radius: var(--radius); }
+.catchup-earlier summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+.catchup-earlier ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.catchup-note { margin: 0; color: var(--ink-soft); font-size: 13px; }

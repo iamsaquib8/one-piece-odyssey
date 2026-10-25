@@ -28,6 +28,7 @@ Everything you see is drawn in code. There are no manga panels, scans or transla
 - **Bounty board.** Every bounty the story has posted, ranked by latest figure, with each poster dated to the chapter that shows it. Compare how up to three people's bounties grew, or follow the Straw Hats' combined total.
 - **Devil Fruit encyclopedia.** Every fruit eaten by a profiled character and every one named on Elbaf, each with a code-drawn fruit, its users in order, awakenings and later true identities. Records wait for the chapter that reveals them, so a reader early in the story still sees the Gum-Gum Fruit by that name.
 - **Wanted-poster maker.** Build a pixel portrait from the same recipe language every character is drawn with, set your name and bounty, and download the poster as a PNG. The share link carries the whole poster; nothing is uploaded.
+- **Where am I?** Enter the last anime episode you watched (or chapter you read) to get the chapter to continue from and a spoiler-safe recap of the arc so far. Filler episodes are named as anime-original.
 - **Mystery board.** Follow four source-linked questions; clues and resolutions unlock with your reading progress.
 - **Spoiler controls.** Limit journey stops, search, profiles, crew records, both atlas modes and discovery views. Limited mode hides portraits and biographies that lack reliable reveal boundaries. Hidden saves remain in your logbook.
 - **Your logbook.** Save arcs and places, mark arcs explored, resume where you stopped. It lives in your own browser and never leaves your device.

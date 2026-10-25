@@ -4,6 +4,7 @@ import DiscoveryViews from './DiscoveryViews';
 import BountyBoard from './BountyBoard';
 import DevilFruitsView from './DevilFruits';
 import PosterMaker from './PosterMaker';
+import CatchUp from './CatchUp';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Cherry, ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
 import { sagas as allSagas, chapterLabel } from '../data/arc-index';
@@ -25,6 +26,7 @@ export default function ExplorerViews(props: Props) {
     case 'bounties': return <BountyBoard onOpen={props.onOpen} />;
     case 'devil-fruits': return <DevilFruitsView onOpen={props.onOpen} />;
     case 'poster': return <PosterMaker />;
+    case 'catch-up': return <CatchUp onOpen={props.onOpen} />;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;
