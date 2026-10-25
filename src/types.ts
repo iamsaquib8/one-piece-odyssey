@@ -9,7 +9,7 @@ export interface Location { id: string; name: string; region: RegionId; kind: 'i
 export interface Character { id: string; name: string; epithet: string; role: string; dream: string; recruitment: string; arcId: string; description: string; milestones: string[]; bounties: { amount: string; after: string }[]; color: string }
 export interface Connection { from: string; to: string; kind: 'geographic' | 'voyage' | 'narrative'; label: string }
 export interface Coverage { verifiedDate: string; latestOfficialChapter: number; coveredThrough: number; source: string; note: string }
-export type View = 'journey' | 'world' | 'search' | 'saved' | 'crew' | 'legal' | 'trails' | 'mysteries' | 'bounties' | 'devil-fruits' | 'poster' | 'catch-up' | 'discover';
+export type View = 'journey' | 'world' | 'search' | 'saved' | 'crew' | 'legal' | 'trails' | 'mysteries' | 'bounties' | 'devil-fruits' | 'poster' | 'catch-up' | 'discover' | 'voyage';
 /** Views reached from the Discover tab, which share its sub-navigation. */
 export const DISCOVER_VIEWS = ['discover', 'trails', 'mysteries', 'bounties', 'devil-fruits', 'poster', 'catch-up'] as const satisfies readonly View[];
 export interface LegalSection { id: string; title: string; summary: string; paragraphs: string[] }
