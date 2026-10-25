@@ -177,7 +177,8 @@ html[data-motion='off'] *, html[data-motion='off'] *::before, html[data-motion='
 .rail-footer { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 8px 16px; border-top: 2px dashed rgba(255, 211, 78, 0.5); color: var(--gold); font-family: var(--font-utility); font-size: 7px; line-height: 1.6; text-align: center; }
 
 /* ---------- Main shell ---------- */
-.main-shell { margin-left: var(--rail-w); min-height: calc(100vh - var(--header-h)); }
+.main-shell { margin-left: 0; min-height: calc(100vh - var(--header-h)); }
+.main-shell.has-rail { margin-left: var(--rail-w); }
 .view-world .main-shell, .view-crew .main-shell { padding-bottom: 0; }
 
 /* Hero */
@@ -483,14 +484,14 @@ html[data-motion='on'] .loading-icon { animation: spin 2.4s linear infinite; }
 }
 @media (max-width: 760px) {
   :root { --header-h: 64px; }
-  .site-header { grid-template-columns: minmax(0,1fr) auto auto auto; gap: 8px; padding: 0 12px 0 10px; }
+  .site-header { grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; padding: 0 12px 0 10px; }
   .brand img { width: 36px; height: 36px; }
   .brand span { font-size: 10px; }
   .desktop-nav { display: none; }
   .search-trigger { width: 44px; padding: 0; justify-content: center; }
   .search-trigger span, .search-trigger kbd { display: none; }
   .saga-rail { display: none; }
-  .main-shell { margin-left: 0; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .main-shell, .main-shell.has-rail { margin-left: 0; padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .hero { min-height: 82vh; align-items: end; }
   .hero-art { object-position: 62% 40%; }
   .hero::before { background: linear-gradient(180deg, rgba(8, 100, 120, 0) 0%, rgba(8, 100, 120, 0.35) 30%, rgba(5, 80, 94, 0.95) 62%, var(--sea-deep) 100%); }
@@ -766,7 +767,7 @@ html[data-scrolled] .voyage-position, html[data-scrolled] .world-pill { opacity:
 
 input[type='search']::-webkit-search-cancel-button, input[type='search']::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
 
-@media(max-width:390px){.brand{gap:7px;min-width:0}.brand>span{font-size:9px}.brand-divider{display:none}.brand b{display:block;margin-top:5px}.site-header{grid-template-columns:minmax(0,1fr) 44px 44px 44px;gap:8px}}
+@media(max-width:390px){.brand{gap:7px;min-width:0}.brand>span{font-size:9px}.brand-divider{display:none}.brand b{display:block;margin-top:5px}.site-header{grid-template-columns:minmax(0,1fr) 44px 44px;gap:8px}}
 @media(min-width:761px) and (max-width:1100px){
   .site-header{gap:8px;padding-inline:16px;grid-template-columns:auto minmax(0,1fr) 44px 44px 44px}
   .brand{gap:8px}.brand span{font-size:10px}.brand-divider{display:none}.brand b{display:block;margin-top:6px}
@@ -801,7 +802,9 @@ input[type='search']::-webkit-search-cancel-button, input[type='search']::-webki
 .discovery-nav button:focus-visible{outline:3px solid var(--sea);outline-offset:3px}
 .reading-empty{color:var(--paper)}
 .reading-saved-note{color:var(--paper);max-width:65ch}
-@media(max-width:1300px){.search-trigger{width:44px;padding:0;justify-content:center}.search-trigger span,.search-trigger kbd{display:none}.reading-settings>summary{width:44px;padding:0}.reading-settings>summary>span,.reading-chevron{display:none}}
+@media(max-width:1300px){.search-trigger{width:44px;padding:0;justify-content:center}.search-trigger span,.search-trigger kbd{display:none}}
+/* The spoiler setting keeps its words ("Full spoilers", "Ch. 105") down to tablet width; it is the one control people need to understand. */
+@media(max-width:1100px){.reading-settings>summary{width:44px;padding:0}.reading-settings>summary>span,.reading-chevron{display:none}}
 @media(max-width:760px){.reading-controls{position:fixed;top:calc(var(--header-h) + 8px);right:12px;max-height:calc(100dvh - var(--header-h) - 90px);overflow-y:auto}.reading-limit{gap:10px;width:100%}.reading-limit>div{flex:1}.discovery-nav{gap:4px;width:100%;padding:8px 12px}.discovery-nav button{font-size:12px;padding:8px 9px;flex:1}}
 @media(max-width:360px){.discovery-nav button{flex:1;gap:5px}}
 
@@ -814,3 +817,18 @@ input[type='search']::-webkit-search-cancel-button, input[type='search']::-webki
 #prerender a { color: var(--sea, #087f91); }
 #prerender footer { margin-top: 40px; font-size: 13px; color: var(--ink-mute); }
 html.reading-limited #prerender { display: none; }
+.best-match .result-row { border: 2px solid var(--gold); }
+.reading-motion { display: flex; align-items: center; gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(16, 36, 58, .15); cursor: pointer; color: var(--ink); }
+.reading-motion input { width: 20px; height: 20px; margin: 0; accent-color: var(--ink); }
+.reading-motion span { display: grid; gap: 2px; }
+.reading-motion small { color: var(--ink-soft); }
+@media (max-width: 760px) { .motion-toggle { display: none; } }
+@media (max-width: 760px) {
+  /* Section tabs scroll sideways; the fade says there is more, the padding lets the last tab clear it. */
+  .detail-nav { mask-image: linear-gradient(90deg, #000 82%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); padding-right: 48px; }
+  .hero { min-height: 70vh; }
+  .hero-copy { padding-top: 18vh; }
+  .hero-copy h1 { font-size: clamp(34px, 10vw, 50px); }
+  .hero-actions { flex-wrap: wrap; }
+}
+.hero-actions .button.paper { background: var(--paper); color: var(--ink); }

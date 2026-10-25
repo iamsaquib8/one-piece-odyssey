@@ -235,3 +235,9 @@ html[data-motion='on'] .beat-clash { animation: clash-pulse 1.6s ease-in-out inf
   .next-stop { grid-template-columns: 1fr; margin: 28px 16px 40px; }
   .nav-beats { display: none; }
 }
+/* The stop and chapter line sits on scene art of any colour, so it gets its own backing. */
+.arc-hero-kicker { padding: 5px 9px; background: rgba(16, 36, 58, .82); border-radius: 3px; text-shadow: none; }
+@media (max-width: 760px) {
+  .arc-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .arc-stats li { justify-content: flex-start; }
+}

@@ -5,6 +5,7 @@ import BountyBoard from './BountyBoard';
 import DevilFruitsView from './DevilFruits';
 import PosterMaker from './PosterMaker';
 import CatchUp from './CatchUp';
+import DiscoverHub from './DiscoverHub';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Cherry, ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
 import { sagas as allSagas, chapterLabel } from '../data/arc-index';
@@ -27,6 +28,7 @@ export default function ExplorerViews(props: Props) {
     case 'devil-fruits': return <DevilFruitsView onOpen={props.onOpen} />;
     case 'poster': return <PosterMaker />;
     case 'catch-up': return <CatchUp onOpen={props.onOpen} />;
+    case 'discover': return <DiscoverHub onNavigate={props.onNavigate} />;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;
@@ -38,6 +40,8 @@ export default function ExplorerViews(props: Props) {
 
 /* ----------------------------------------------------------------- Search */
 type Hit = { kind: 'arc' | 'location' | 'character' | 'crew' | 'fruit' | 'saga'; id: string; title: string; subtitle: string; text: string };
+// On a tie, a record that opens beats a saga, which only scrolls the journey.
+const KIND_RANK: Record<Hit['kind'], number> = { character: 0, arc: 1, location: 2, crew: 3, fruit: 4, saga: 5 };
 function highlight(text: string, q: string) {
   if (!q) return text;
   const i = normalize(text).indexOf(normalize(q));
@@ -64,8 +68,18 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
     ...devilFruits.map((f) => ({ kind: 'fruit' as const, id: f.id, title: f.trueIdentity?.name ?? f.name, subtitle: `${f.romaji} · ${f.users.map((u) => u.name).join(', ')}`, text: `${f.name} ${f.romaji} ${f.meaning} ${f.trueIdentity?.name ?? ''} ${f.users.map((u) => u.name).join(' ')}` })),
   ], [arcs, locations, characters, crews, devilFruits, sagas]);
   const q = query.trim();
-  const hits = useMemo(() => { const n = normalize(q); if (!n) return []; const words = n.split(/\s+/); return index.filter((h) => { const t = normalize(h.text); return words.every((w) => t.includes(w)); }).sort((a, b) => Number(normalize(b.title).includes(n)) - Number(normalize(a.title).includes(n))); }, [q, index]);
-  const groups: Array<[Hit['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew', 'Crews & factions'], ['character', 'Characters'], ['fruit', 'Devil Fruits'], ['saga', 'Sagas']];
+  // Rank by how well the title matches, so "zoro" puts Roronoa Zoro first rather than every arc
+  // whose summary mentions him. Text-only matches still count, below any title match.
+  const hits = useMemo(() => {
+    const n = normalize(q); if (!n) return [];
+    const words = n.split(/\s+/);
+    const score = (h: Hit) => { const t = normalize(h.title); return t === n ? 100 : t.startsWith(n) ? 80 : t.split(/[^a-z0-9]+/).some((w) => w.startsWith(n)) ? 60 : t.includes(n) ? 40 : words.every((w) => t.includes(w)) ? 30 : 0; };
+    return index.map((h) => ({ ...h, score: score(h) })).filter((h) => h.score > 0 || words.every((w) => normalize(h.text).includes(w))).sort((a, b) => b.score - a.score || KIND_RANK[a.kind] - KIND_RANK[b.kind]);
+  }, [q, index]);
+  const best = hits[0]?.score >= 40 ? hits[0] : undefined;
+  const groupOrder: Array<[Hit['kind'], string]> = [['arc', 'Arcs'], ['location', 'Places'], ['crew', 'Crews & factions'], ['character', 'Characters'], ['fruit', 'Devil Fruits'], ['saga', 'Sagas']];
+  // Groups follow their best hit, so the kind of thing the reader searched for comes first.
+  const groups = [...groupOrder].sort(([a], [b]) => (hits.find((h) => h.kind === b)?.score ?? -1) - (hits.find((h) => h.kind === a)?.score ?? -1));
   function submit(e: FormEvent) { e.preventDefault(); const first = hits[0]; if (first) activate(first); }
   function activate(h: Hit) { if (h.kind === 'saga') onJumpSaga(h.id); else onOpen(h.kind, h.id); }
   return <section className="explorer search-view" aria-labelledby="search-title">
@@ -73,7 +87,7 @@ function SearchView({ route, onOpen, onJumpSaga }: Props) {
     <form noValidate className="search-form" role="search" onSubmit={submit}><Search size={20} /><input ref={input} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search manga arcs, islands, characters…" aria-label="Search the explorer" autoComplete="off" enterKeyHint="search" />{query ? <button type="button" className="clear" aria-label="Clear search" onClick={() => { setQuery(''); input.current?.focus(); }}><X size={18} /></button> : null}</form>
     {!q ? <div className="suggestions" aria-label="Suggested searches">{(through === null ? ['Alabasta', 'Going Merry', 'Water Seven', 'Nico Robin', 'Skypiea', 'Wano', 'Sanji', 'Sabaody'] : arcs.slice(0, 6).map(a => a.name)).map((s) => <button key={s} className="chip" onClick={() => setQuery(s)}><Search size={14} />{s}</button>)}</div>
       : hits.length === 0 ? <div className="empty-state"><Compass size={44} /><h2>Nothing on the chart for “{q}”.</h2><p>Try a shorter word, an island name, or a crew member. Character names use the manga’s English spellings.</p><button className="button" onClick={() => setQuery('')}>Clear the search</button></div>
-      : <div className="result-groups" aria-live="polite">{groups.map(([kind, label]) => { const items = hits.filter((h) => h.kind === kind); if (!items.length) return null; return <div className="result-group" key={kind}><h2>{kind === 'arc' ? <BookOpen size={14} /> : kind === 'location' ? <MapPin size={14} /> : kind === 'character' ? <Users size={14} /> : kind === 'fruit' ? <Cherry size={14} /> : <Compass size={14} />}{label} · {items.length}</h2><ul>{items.map((h) => <li key={h.id}><button className="result-row" onClick={() => activate(h)}><span className="kind">{kind}</span><span><strong>{highlight(h.title, q)}</strong><small>{highlight(h.subtitle, q)}</small></span><ArrowRight size={18} /></button></li>)}</ul></div>; })}</div>}
+      : <div className="result-groups" aria-live="polite">{best ? <div className="result-group best-match"><h2><Search size={14} />Best match</h2><button className="result-row" onClick={() => activate(best)}><span className="kind">{best.kind}</span><span><strong>{highlight(best.title, q)}</strong><small>{highlight(best.subtitle, q)}</small></span><ArrowRight size={18} /></button></div> : null}{groups.map(([kind, label]) => { const items = hits.filter((h) => h.kind === kind && h !== best); if (!items.length) return null; return <div className="result-group" key={kind}><h2>{kind === 'arc' ? <BookOpen size={14} /> : kind === 'location' ? <MapPin size={14} /> : kind === 'character' ? <Users size={14} /> : kind === 'fruit' ? <Cherry size={14} /> : <Compass size={14} />}{label} · {items.length}</h2><ul>{items.map((h) => <li key={h.id}><button className="result-row" onClick={() => activate(h)}><span className="kind">{kind}</span><span><strong>{highlight(h.title, q)}</strong><small>{highlight(h.subtitle, q)}</small></span><ArrowRight size={18} /></button></li>)}</ul></div>; })}</div>}
   </section>;
 }
 

@@ -104,6 +104,16 @@ Why: the site could not be found or shared. Every URL returned the same title an
 - **Island art kept its size.** The flat-chart anchoring test caught overlaps when islands were scaled up, so the art stays at its original size.
 - **Tests and capture.** Atlas tests now open the globe explicitly when they test it. `npm run capture` also re-shoots `world-atlas.webp`.
 
+## UX pass, 25 October
+
+- **Search.** Results rank by how well the title matches, and a "Best match" leads. On a tie, records outrank sagas. Groups follow their best hit, so "zoro" opens on Roronoa Zoro, not 27 arcs.
+- **Discover.** Discover opens a hub (`/discover/`) with a card per tool and live counts. The journey page has a "More to explore" strip, which scrolls sideways on phones. The strip's cards (`FeatureCards.tsx`) carry no story data, so the main bundle does not grow.
+- **Saga rail.** The rail renders only on the journey page; other pages get the full width.
+- **Header.** The spoiler setting keeps its label ("Full spoilers" or "Ch. N") down to 1100px. The animation switch also sits in reading settings with words, and the header button for it is hidden on phones.
+- **Arc reader.** The chapter line on the title card has a backing band, the stats sit in a two-column grid on phones, and the section tabs fade at the edge to show they scroll.
+- **Phone home.** The first screen is shorter, gives a plainer pitch with the covered chapter, and has a "Where am I?" button.
+- **Crews.** The page labels its 1126 cutoff as "profiles reviewed", so it no longer reads as a stale edition.
+
 ## Content inventory
 
 | File | Arcs | Chapters |
