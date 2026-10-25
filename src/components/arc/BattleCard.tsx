@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useCallback, useState, type CSSProperties } from 'react';
 import { motion as m } from 'motion/react';
 import type { Battle } from '../../types';
 import type { BattleStaging, CastMember } from '../../data/staging';
@@ -21,16 +21,19 @@ export function BattleCard({ battle, staging, cast, motion, locationId }: Props)
   const a = side(staging?.a);
   const b = side(staging?.b);
   const verdict = staging?.verdict ? VERDICT[staging.verdict] : undefined;
+  // The stamp waits until the aftermath plays, so readers can call the fight first.
+  const [revealed, setRevealed] = useState(false);
+  const reveal = useCallback(() => setRevealed(true), []);
   return <m.section id={`battle-${battle.id}`} className="battle-card" aria-label={battle.title} initial={motion ? { opacity: 0, y: 26 } : false} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.55, ease }}>
-    {a.length || b.length ? <div className={`versus ${verdict ? `verdict-${verdict.tone}` : ''}`}>
+    {a.length || b.length ? <div className={`versus ${verdict && revealed ? `verdict-${verdict.tone}` : ''}`}>
       <Side members={a} align="left" motion={motion} />
       <div className="versus-middle">
         <m.span className="versus-badge" aria-hidden="true" initial={motion ? { scale: 0.2, rotate: -20, opacity: 0 } : false} whileInView={{ scale: 1, rotate: -6, opacity: 1 }} viewport={{ once: true, amount: 0.6 }} transition={{ type: 'spring', stiffness: 420, damping: 16, delay: 0.25 }}>VS</m.span>
-        {verdict ? <m.span className={`verdict-stamp ${verdict.tone}`} initial={motion ? { scale: 1.6, opacity: 0, rotate: 8 } : false} whileInView={{ scale: 1, opacity: 1, rotate: -8 }} viewport={{ once: true, amount: 0.6 }} transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.7 }}>{verdict.label}</m.span> : null}
+        {verdict && revealed ? <m.span className={`verdict-stamp ${verdict.tone}`} initial={motion ? { scale: 1.6, opacity: 0, rotate: 8 } : false} animate={{ scale: 1, opacity: 1, rotate: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 14 }}>{verdict.label}</m.span> : null}
       </div>
       <Side members={b} align="right" motion={motion} />
     </div> : null}
-    <BattlePlayer battle={battle} motion={motion} staging={staging} cast={cast} locationId={locationId} />
+    <BattlePlayer battle={battle} motion={motion} staging={staging} cast={cast} locationId={locationId} onReveal={reveal} />
   </m.section>;
 }
 

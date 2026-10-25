@@ -62,3 +62,44 @@ export function cue(progress: number, points: readonly (readonly [number, number
 
 export const attackCue = (p: number) => cue(p, [[0, 0], [.2, -.15], [.43, 1], [.49, 1], [.76, .1], [1, 0]]);
 export const impactCue = (p: number) => cue(p, [[0, 0], [.42, 0], [.45, 1], [.52, 1], [.78, 0], [1, 0]]);
+
+/**
+ * Hit-stop: a strike slows down around its impact, the way fighting games freeze a frame on a hit,
+ * then catches up so the shot keeps its length. Pure, so seeking still lands on exact poses.
+ */
+export function hitStop(shot: BattleShot, progress: number) {
+  if (shot.kind !== 'strike') return progress;
+  const t = Math.max(0, Math.min(1, progress));
+  return t < .4 ? t : t < .62 ? .4 + (t - .4) * .36 : .4792 + (t - .62) * (.5208 / .38);
+}
+
+const other = (side: 'a' | 'b') => side === 'a' ? 'b' : 'a';
+const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
+
+/**
+ * Each side's health (1 = full) at a moment of the timeline. Every strike takes a share from the
+ * side it hits as the blow lands; in the aftermath of a decided battle the loser's bar runs out.
+ * Winners keep about half, and a draw leaves both sides worn down but standing.
+ */
+export function healthAt(shots: BattleShot[], verdict: BattleStaging['verdict'], elapsed: number) {
+  const taken = { a: 0, b: 0 };
+  for (const shot of shots) if (shot.kind === 'strike') taken[other(shot.actor)]++;
+  const loser = verdict === 'a' ? 'b' : verdict === 'b' ? 'a' : undefined;
+  const budget = (side: 'a' | 'b') => !loser ? .6 : side === loser ? .7 : .55;
+  const health = { a: 1, b: 1 };
+  const time = Number.isFinite(elapsed) ? elapsed : 0;
+  let start = 0;
+  for (const shot of shots) {
+    if (time < start) break;
+    const progress = clamp01((time - start) / shot.duration);
+    if (shot.kind === 'strike') {
+      const target = other(shot.actor);
+      health[target] -= budget(target) / taken[target] * clamp01((hitStop(shot, progress) - .43) / .04);
+    } else if (shot.kind === 'resolve' && loser) {
+      health[loser] *= 1 - cue(progress, [[0, 0], [.15, 0], [.6, 1], [1, 1]]);
+    }
+    start += shot.duration;
+  }
+  const round = (value: number) => Math.round(Math.max(0, Math.min(1, value)) * 1000) / 1000;
+  return { a: round(health.a), b: round(health.b) };
+}
