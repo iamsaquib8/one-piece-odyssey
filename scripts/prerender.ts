@@ -21,6 +21,7 @@ import { crews } from '../src/data/crews';
 import { stagings } from '../src/data/staging';
 import { buildMysteries } from '../src/data/mysteries';
 import { buildBountyBoard } from '../src/data/bounty-board';
+import { canonAnimeArcs } from '../src/data/anime-arcs';
 import { coverage } from '../src/data/coverage';
 import { encodeRoute } from '../src/state';
 import type { Route } from '../src/types';
@@ -209,6 +210,7 @@ pages.push(
   view({ view: 'bounties' }, 'Bounty board', 'Discover', 'Every bounty the One Piece story has posted, ranked by latest figure, with how each one grew chapter by chapter.', `<ol>${buildBountyBoard(allCharacters).map((r) => `<li>${link({ view: 'journey', kind: 'character', id: r.character.id }, r.character.name)}: ฿${esc(r.current.amount)} <small>(${esc(r.current.label)}, Ch. ${r.current.chapter})</small></li>`).join('')}</ol>`),
   view({ view: 'devil-fruits' }, 'Devil Fruit encyclopedia', 'Discover', 'Every Devil Fruit eaten by a profiled character, and every one named on Elbaf: what it does, who has held it, and when it awakened.', list(devilFruits.map((f) => link({ view: 'journey', kind: 'fruit', id: f.id }, `${f.name} (${f.romaji})`)))),
   { ...view({ view: 'poster' }, 'Wanted poster maker', 'Make', 'Build a pixel portrait from the recipe every character here is drawn with, set your bounty, and download your own wanted poster.', '<p>Choose a face, a hat, a scar and colours, write your name and bounty, and save the poster as a PNG. Nothing is uploaded; the share link carries the whole poster.</p>'), image: { path: 'og/view/poster.png', alt: 'A sample wanted poster drawn in code', svg: posterMakerCard } },
+  view({ view: 'catch-up' }, 'Where am I? Anime episode to manga chapter', 'Discover', 'Enter the last One Piece anime episode you watched to find the manga chapter to start from, with a spoiler-safe recap of the arc so far.', `<p>Each anime arc is matched to the chapters it adapts; filler arcs are marked as anime-original.</p>${list(canonAnimeArcs.map((a) => `${esc(a.name)}: episodes ${a.episodes[0]}–${a.episodes[1]}${a.airing ? ' (still airing)' : `, chapters ${a.chapters[0]}–${a.chapters[1]}`}`))}`),
   view({ view: 'legal' }, 'Disclaimer and terms', 'Notices', 'Rights, privacy and contact details for this non-commercial fan project.', ''),
   view({ view: 'search' }, 'Search', 'Search', 'Search arcs, places, characters and crews.', '', false),
   view({ view: 'saved' }, 'Your logbook', 'Logbook', 'Arcs and places you saved, kept in your own browser.', '', false),
