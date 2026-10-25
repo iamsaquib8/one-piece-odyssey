@@ -70,3 +70,18 @@ test('the shared battle scene animates and stops when scrolled away', async ({ p
   await page.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect(battle).toHaveAttribute('data-playing', 'false');
 });
+
+test('readers can call a fight before it plays, and the verdict waits for the aftermath', async ({ page }) => {
+  await page.goto('/?arc=baratie');
+  await page.getByRole('button', { name: 'Battles', exact: true }).click();
+  const card = page.locator('.battle-card').filter({ hasText: 'Luffy versus Don Krieg' });
+  const battle = card.locator('.motion-comic');
+  await expect(card.locator('.verdict-stamp')).toHaveCount(0);
+  await expect(battle.locator('.comic-hud-bar i').first()).toHaveAttribute('style', /width: 100%/);
+  await battle.getByRole('group', { name: 'Predict the winner' }).getByRole('button', { name: 'Krieg' }).click();
+  await expect(battle).toHaveAttribute('data-playing', 'true');
+  await battle.getByRole('slider', { name: 'Battle timeline' }).press('End');
+  await expect(battle.locator('.comic-predict')).toContainText('Not this time: Luffy wins.');
+  await expect(battle.locator('.comic-hud-ko')).toBeVisible();
+  await expect(card.locator('.verdict-stamp')).toHaveText('Won');
+});
