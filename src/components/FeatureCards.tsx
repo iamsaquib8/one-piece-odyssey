@@ -1,4 +1,4 @@
-import { ArrowRight, Cherry, Coins, MapPinned, Route as RouteIcon, ScrollText, Search, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Gamepad2, Cherry, Coins, MapPinned, Route as RouteIcon, ScrollText, Search, type LucideIcon } from 'lucide-react';
 import type { View } from '../types';
 import '../discover-hub.css';
 
@@ -6,6 +6,7 @@ interface Feature { view: View; title: string; line: string; Icon: LucideIcon; t
 
 /** Every Discover tool, in the order a returning reader is most likely to want them. */
 export const FEATURES: Feature[] = [
+  { view: 'voyage', title: 'Grand Line Voyage', line: 'Play the story: recruit the crew, fight the arcs, sail the East Blue.', Icon: Gamepad2, tone: '#b23a2e' },
   { view: 'catch-up', title: 'Where am I?', line: 'From your last anime episode to the manga chapter, with a recap.', Icon: MapPinned, tone: '#1f5d57' },
   { view: 'bounties', title: 'Bounty board', line: 'Every posted bounty, ranked, and how each one grew.', Icon: Coins, tone: '#7a3a24' },
   { view: 'devil-fruits', title: 'Devil Fruits', line: 'Every fruit, who ate it, and when it awakened.', Icon: Cherry, tone: '#3d2a63' },

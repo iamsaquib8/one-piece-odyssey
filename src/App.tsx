@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { MapPinned, Anchor, ArrowDown, ArrowRight, Bookmark, BookmarkCheck, BookOpen, Building2, Cake, Check, ChevronDown, Cloud, Compass, Cpu, Crown, Fish, Flame, Ghost, Globe2, Map, MapPin, Mountain, Pause, Play, Search, Ship, Sparkles, Sun, Swords, TreePine, Users, Wind } from 'lucide-react';
+import { Gamepad2, MapPinned, Anchor, ArrowDown, ArrowRight, Bookmark, BookmarkCheck, BookOpen, Building2, Cake, Check, ChevronDown, Cloud, Compass, Cpu, Crown, Fish, Flame, Ghost, Globe2, Map, MapPin, Mountain, Pause, Play, Search, Ship, Sparkles, Sun, Swords, TreePine, Users, Wind } from 'lucide-react';
 import { AnimatePresence, motion as m, useReducedMotion } from 'motion/react';
 import { arcSummaries as allArcs, locationSummaries as locations, sagas as allSagas, chapterLabel, type ArcSummary } from './data/arc-index';
 import { coverage } from './data/coverage';
@@ -18,7 +18,7 @@ const sagas = allSagas;
 const DetailOverlay = lazy(() => import('./components/DetailOverlay'));
 const ExplorerViews = lazy(() => import('./components/ExplorerViews'));
 
-const navItems = [{ id: 'journey', label: 'Journey', Icon: Compass }, { id: 'world', label: 'World', Icon: Globe2 }, { id: 'crew', label: 'Crews', Icon: Users }, { id: 'discover', label: 'Discover', Icon: Sparkles }, { id: 'saved', label: 'Saved', Icon: Bookmark }] as const;
+const navItems = [{ id: 'journey', label: 'Journey', Icon: Compass }, { id: 'world', label: 'World', Icon: Globe2 }, { id: 'crew', label: 'Crews', Icon: Users }, { id: 'discover', label: 'Discover', Icon: Sparkles }, { id: 'voyage', label: 'Play', Icon: Gamepad2 }, { id: 'saved', label: 'Saved', Icon: Bookmark }] as const;
 const sagaIcons: Record<string, typeof Compass> = { 'east-blue': Compass, alabasta: Sun, 'sky-island': Cloud, 'water-seven': Building2, 'thriller-bark': Ghost, 'summit-war': Swords, 'fish-man-island': Fish, 'punk-hazard': Flame, dressrosa: Crown, 'whole-cake-island': Cake, wano: Mountain, egghead: Cpu, elbaf: TreePine };
 const stopLabels = ['ARRIVAL', 'NEXT STOP', 'THEN', 'ONWARD', 'FURTHER', 'BEYOND', 'AND THEN', 'AT LAST', 'STILL FURTHER'];
 /** Chapter ticks for the voyage strip, ending on the last hundred this edition covers. */
@@ -234,7 +234,7 @@ export default function App() {
       <div className="voyage-position"><Ship size={19} /><span>{shipName}<small>{activeSagaRecord?.name || activeSaga}</small></span></div>
       <button className="world-pill" onClick={() => navigate('world')}>Explore the full world <span className="pill-icon"><Globe2 size={16} /></span></button>
     </aside> : null}
-    <nav className="bottom-nav" aria-label="Mobile navigation">{[{ id: 'journey' as const, label: 'Journey', Icon: Compass }, { id: 'search' as const, label: 'Search', Icon: Search }, { id: 'world' as const, label: 'World', Icon: Map }, { id: 'discover' as const, label: 'Discover', Icon: Sparkles }, { id: 'saved' as const, label: 'Saved', Icon: Bookmark }].map(({ id, label, Icon }) => <button key={id} className={activeView === id ? 'active' : ''} aria-current={activeView === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={20} /><span>{label}</span></button>)}</nav>
+    <nav className="bottom-nav" aria-label="Mobile navigation">{[{ id: 'journey' as const, label: 'Journey', Icon: Compass }, { id: 'world' as const, label: 'World', Icon: Map }, { id: 'voyage' as const, label: 'Play', Icon: Gamepad2 }, { id: 'discover' as const, label: 'Discover', Icon: Sparkles }, { id: 'saved' as const, label: 'Saved', Icon: Bookmark }].map(({ id, label, Icon }) => <button key={id} className={activeView === id ? 'active' : ''} aria-current={activeView === id ? 'page' : undefined} onClick={() => navigate(id)}><Icon size={20} /><span>{label}</span></button>)}</nav>
     <div className={`toast ${toast ? 'visible' : ''}`} role="status">{toast ? <Check size={16} /> : null}{toast}</div>
     <PixelBurst burst={burst} />
     {!storageAvailable ? <div className="storage-note" role="status">Saves are available for this session. Device storage is unavailable.</div> : null}

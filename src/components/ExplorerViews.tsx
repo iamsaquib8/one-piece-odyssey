@@ -6,7 +6,7 @@ import DevilFruitsView from './DevilFruits';
 import PosterMaker from './PosterMaker';
 import CatchUp from './CatchUp';
 import DiscoverHub from './DiscoverHub';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, lazy, Suspense } from 'react';
 import { Cherry, ArrowRight, Bookmark, BookOpen, Check, Compass, Mail, MapPin, Scale, Search, Users, X } from 'lucide-react';
 import { sagas as allSagas, chapterLabel } from '../data/arc-index';
 import CrewView from './CrewView';
@@ -14,6 +14,9 @@ import WorldAtlas from './WorldAtlas';
 import { contactAddress, legalSections, legalUpdated } from '../data/legal';
 import type { Location, ReaderState, Route, View } from '../types';
 import { encodeRoute } from '../state';
+
+// The game is its own chunk: readers who never play never download it.
+const VoyageGame = lazy(() => import('../game/ui/VoyageGame'));
 
 type OpenFn = (kind: NonNullable<Route['kind']>, id: string, beat?: string) => void;
 interface Props { motion:boolean; view: View; route: Route; reader: ReaderState; onOpen: OpenFn; onNavigate: (view: View) => void; onJumpSaga: (id: string) => void; onSave: (id: string) => void }
@@ -29,6 +32,7 @@ export default function ExplorerViews(props: Props) {
     case 'poster': return <PosterMaker />;
     case 'catch-up': return <CatchUp onOpen={props.onOpen} />;
     case 'discover': return <DiscoverHub onNavigate={props.onNavigate} />;
+    case 'voyage': return <Suspense fallback={<div className="loading-state"><p>Readying the ship…</p></div>}><VoyageGame motion={props.motion} /></Suspense>;
     case 'world': return <WorldAtlas {...props} />;
     case 'search': return <SearchView {...props} />;
     case 'saved': return <SavedView {...props} />;

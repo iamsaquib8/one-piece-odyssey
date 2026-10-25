@@ -51,7 +51,7 @@ export const legalSections: LegalSection[] = [
     summary: 'No accounts, no cookies, no analytics — your logbook stays on your device.',
     paragraphs: [
       'This site has no accounts, no sign-in, and no commerce. It sets no cookies, runs no analytics or advertising, and sends no telemetry. Nothing you do here is transmitted to the maintainer or to any third party, because the site makes no network calls of its own.',
-      'Your logbook — which arcs you have saved or explored, your motion preference, and your reading position — is stored only in your own browser, under a single localStorage entry named “grand-line-logbook-v1”. It never leaves your device, and the maintainer cannot read it.',
+      'Your logbook — which arcs you have saved or explored, your motion preference, and your reading position — is stored only in your own browser, under a single localStorage entry named “grand-line-logbook-v1”. It never leaves your device, and the maintainer cannot read it. If you play Grand Line Voyage, its saved voyage is kept the same way, in a second entry named “grand-line-voyage-v1”, which “New voyage” deletes.',
       'Clearing your browser’s site data for this domain erases that entry and resets the logbook. If storage is unavailable or blocked, the site stays fully usable for the session and simply forgets between visits.',
       'Fonts are self-hosted and served from this site, so loading a page does not call out to a font provider or any other external service.',
     ],
