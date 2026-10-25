@@ -163,7 +163,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). In short: run `npm run validate` after t
 
 ## Keeping up with the manga
 
-The story cutoff lives in `src/data/coverage.ts`. `npm run refresh:audit` reports how far behind the edition is and finds any place that repeats an edition fact and has drifted from it. The full procedure for pulling in newly released chapters — research, writing, art, verification — is the `chapter-refresh` skill in `.claude/skills/`.
+A weekly workflow (`.github/workflows/chapter-watch.yml`) checks every Monday for newly released chapters and opens a "Chapter refresh" issue when it finds one; `npm run chapter:check` runs the same check locally. The story cutoff lives in `src/data/coverage.ts`. `npm run refresh:audit` reports how far behind the edition is and finds any place that repeats an edition fact and has drifted from it. The full procedure for pulling in newly released chapters — research, writing, art, verification — is the `chapter-refresh` skill in `.claude/skills/`.
 
 ## Star history
 
