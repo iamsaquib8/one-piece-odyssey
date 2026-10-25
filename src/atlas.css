@@ -94,3 +94,44 @@
   .atlas-expanded .atlas-canvas-wrap{height:clamp(300px,92vw,420px);min-height:300px}.atlas-expanded .atlas-map-tools{flex-shrink:0}.globe-place-label{max-width:160px}
 }
 @media(orientation:landscape) and (max-height:600px){.atlas-canvas-wrap{height:300px}.atlas-expanded .atlas-canvas-wrap{height:300px;min-height:300px}}
+
+/* ---------------------------------------------------------------- Treasure-chart theme
+   The atlas is drawn as an old sea chart on parchment, matching the journey page and the
+   wanted posters. These rules restyle the shell around it; AtlasBackdrop draws the chart. */
+.atlas-page{padding-top:22px}
+.atlas-page-heading{margin-bottom:16px}
+.atlas-page-heading h1{font-size:clamp(28px,2.6vw,42px);margin:4px 0}
+.atlas-shell{background:#efe2c0;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);color:var(--ink)}
+.atlas-toolbar{background:var(--paper);color:var(--ink);border-bottom:2px solid var(--ink)}
+.atlas-title{color:var(--ink)}
+.atlas-title>span{color:var(--ink-mute);border-left-color:#2a211744}
+.atlas-toolbar nav button,.atlas-projection button{color:var(--ink)}
+.atlas-toolbar nav button:hover,.atlas-toolbar nav button.active{background:var(--gold);color:var(--ink);border-color:var(--ink)}
+.atlas-projection{border-color:var(--ink)}
+.atlas-projection button.active{background:var(--ink);color:var(--paper)}
+.atlas-projection button:hover:not(.active){background:#2a211714}
+.atlas-icon:hover,.atlas-icon.active{background:#2a211714;color:var(--ink)}
+.atlas-map-tools,.atlas-map-help{background:#f6ecd2;color:var(--ink);border-color:#2a211733}
+.atlas-map-status strong{color:var(--ink);font-family:Georgia,serif}
+.atlas-map-status span,.atlas-map-help .atlas-map-hint{color:var(--ink-mute)}
+.atlas-canvas-wrap{background:#e9d9b0}
+.atlas-bottom-note{background:var(--paper);color:var(--ink-mute);border-top:2px solid var(--ink)}
+.globe-loading{background:#e9d9b0;color:var(--ink)}
+.atlas-backdrop-art .atlas-sea-label{fill:#2a2117;opacity:.55;font-size:30px;letter-spacing:9px}
+.atlas-belt-label{fill:#2a2117;opacity:.45;font-size:22px;letter-spacing:12px}
+.atlas-ocean-label{fill:#1f5d57;opacity:.55;font-size:46px;letter-spacing:6px}
+.atlas-terrain-label{fill:#fbecd0;font-size:20px}
+.atlas-grand-label{fill:#2a2117;font-size:34px;letter-spacing:12px;font-weight:700}
+.atlas-tiny-label{fill:#5a4426;font-family:Georgia,serif;font-style:italic;letter-spacing:2px}
+.atlas-pin-name{font-family:Georgia,'Times New Roman',serif;letter-spacing:.02em}
+.atlas-island-art{filter:url(#island-shadow)}
+.atlas-tool-buttons,.atlas-zoom,.atlas-find-place,.atlas-selection{color:var(--ink)}
+.atlas-find-place:hover,.atlas-selection:hover{color:var(--ink);background:#2a211714}
+/* The chart is 12:7; sizing the frame to match leaves no empty bands above or below it. */
+/* The chart is 12:7; sizing the frame to match leaves no empty bands around it. Pinch zooms in. */
+.atlas-canvas-wrap{height:auto;aspect-ratio:12/7;max-height:78vh;min-height:220px}
+.atlas-toolbar select{background:var(--paper);color:var(--ink);border:2px solid var(--ink)}
+.globe-stage{background:radial-gradient(ellipse at 47% 48%,#f2e6c6 0,#e6d4a8 55%,#d2b986 100%)}
+.globe-ambient-grid{opacity:.35;filter:sepia(1) saturate(.4) brightness(.5)}
+.globe-place-label{color:var(--ink);background:#f6ecd2f0;border:1.5px solid var(--ink);font-family:Georgia,serif;font-weight:700}
+.globe-fallback,.globe-loading{background:#e9d9b0;color:var(--ink)}

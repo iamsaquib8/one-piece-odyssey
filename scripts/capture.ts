@@ -2,7 +2,7 @@
  * Re-shoots the README screenshots and the animated demo from the built site.
  * Run `npm run build` first, then `npm run capture`. The demo needs ffmpeg on the PATH.
  *
- * journey.webp, arc-title-card.webp and mobile-arc.webp show edition facts (chapter numbers,
+ * journey.webp, arc-title-card.webp and mobile-arc.webp show edition facts; world-atlas.webp shows the chart (chapter numbers,
  * counts), so a chapter refresh re-runs this. The other screenshots only change with the UI.
  */
 import { spawn, spawnSync } from 'node:child_process';
@@ -41,6 +41,7 @@ try {
   const page = await desktop.newPage();
   await page.goto(`${base}/`); await settle(page); await shoot(page, 'journey');
   await page.goto(`${base}/arc/wano/`); await settle(page); await shoot(page, 'arc-title-card');
+  await page.goto(`${base}/world/`); await settle(page); await page.locator('.atlas-shell').scrollIntoViewIfNeeded(); await shoot(page, 'world-atlas');
   await desktop.close();
 
   const phone = await browser.newContext({ viewport: { width: 260, height: 578 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
