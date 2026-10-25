@@ -148,3 +148,23 @@ html[data-motion='on'] .vg-cutin { animation: vg-slide .36s ease-out; }
   .vg-node { width: 112px; }
   .vg-quit { margin-left: 0; }
 }
+
+/* Phase two: the campaign. */
+.vg-pop.is-mend { left: 22%; color: #7be08a; }
+.vg-guest { margin-left: 6px; padding: 1px 6px; font: 7px/1.6 var(--font-utility); text-transform: uppercase; color: var(--ink); background: var(--gold); border: 1px solid var(--ink); }
+.vg-hud-crew li.is-away { opacity: .35; }
+.vg-hud-crew { flex-wrap: wrap; }
+.vg-start-at { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-weight: 800; }
+.vg-start-at select { min-height: 44px; padding: 6px 10px; font: inherit; color: var(--ink); background: var(--paper); border: 2px solid var(--ink); border-radius: var(--radius); }
+.vg-logbook { grid-column: 1 / -1; }
+.vg-logbook h2 { display: flex; align-items: center; gap: 8px; }
+.vg-log-stats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 0; }
+.vg-log-stats dt { font: 8px/1.8 var(--font-utility); text-transform: uppercase; color: var(--ink-soft); }
+.vg-log-stats dd { margin: 0; font-size: 20px; font-weight: 900; }
+.vg-log-sagas { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.vg-log-sagas li { padding: 4px 10px; font-size: 13px; font-weight: 800; color: var(--ink-soft); border: 1px dashed var(--ink-soft); border-radius: 999px; }
+.vg-log-sagas li.is-done { color: var(--ink); background: var(--gold); border: 1px solid var(--ink); }
+.vg-log-crew { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.vg-end-crew { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.vg-end-crew svg { width: 100%; height: auto; display: block; }
+.vg-team:has(> li:nth-child(5)) { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); }

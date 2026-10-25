@@ -24,8 +24,7 @@ export function joinArcs(): Record<string, string> {
   return out;
 }
 
-/** Global position of an arc in the story, 0-based: the difficulty curve reads it. */
-export const arcTier = (arcId: string) => Math.max(0, allArcs.findIndex((a) => a.id === arcId));
+export { arcTier } from './tiers';
 
 export function buildChart(sagaId: string, through: number | null, seed: number): Chart {
   const dice = new Dice(seed);

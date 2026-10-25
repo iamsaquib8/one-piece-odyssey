@@ -5,10 +5,10 @@ import { PortraitSvg } from '../../components/PortraitSvg';
 import { recipeFor } from '../../components/portrait-recipe';
 import { arcs } from '../../data/arcs';
 import { stagingFor } from '../../data/staging';
-import { CREW } from '../crew';
+import { CREW, specialFor } from '../crew';
 import { characters } from '../../data/characters';
 
-import { autoPlan, canAct, MAX_ACTIONS } from '../combat';
+import { autoPlan, canAct, maxActions } from '../combat';
 import type { BattleState, Blow, Fighter, GameAction, Intent } from '../types';
 import '../../crews.css';
 
@@ -19,7 +19,9 @@ interface Props { battle: BattleState; locationId?: string; motion: boolean; dis
 const BLOW_MS = 860;
 /** Specials hold longer so their cut-in can be read. */
 const SPECIAL_MS = 1400;
-const durationOf = (b?: Blow) => b && (b.kind === 'special' || b.kind === 'steal') ? SPECIAL_MS : BLOW_MS;
+const durationOf = (b?: Blow) => b && (b.kind === 'special' || b.kind === 'steal' || b.kind === 'heal' || b.kind === 'revive') ? SPECIAL_MS : BLOW_MS;
+/** Blows that restore health instead of taking it. */
+const mends = (b?: Blow) => b?.kind === 'heal' || b?.kind === 'revive';
 /**
  * Hit-stop: time slows around the moment of impact (the art lands its blow near progress .47), the
  * way fighting games freeze a frame on a hit, then catches up so the beat keeps its length.
@@ -66,7 +68,7 @@ export default function BattleScreen({ battle, locationId, motion, dispatch }: P
       setProgress(hitStop(t));
       if (t < 1) { frame = requestAnimationFrame(tick); return; }
       const hp = new Map(playing.hp);
-      if (blow?.targetId && blow.amount) hp.set(blow.targetId, Math.max(0, (hp.get(blow.targetId) ?? 0) - blow.amount));
+      if (blow?.targetId && blow.amount) hp.set(blow.targetId, blow.kind === 'revive' ? blow.amount : Math.max(0, (hp.get(blow.targetId) ?? 0) + (mends(blow) ? blow.amount : -blow.amount)));
       if (playing.index + 1 < playing.blows.length) setPlaying({ ...playing, index: playing.index + 1, hp });
       else { setPlaying(null); setProgress(.2); }
     };
@@ -79,15 +81,16 @@ export default function BattleScreen({ battle, locationId, motion, dispatch }: P
   const shownHp = (f: Fighter) => {
     if (!playing) return f.hp;
     const base = playing.hp.get(f.id) ?? f.hp;
-    return current?.targetId === f.id && landed ? Math.max(0, base - current.amount) : base;
+    if (current?.targetId !== f.id || !landed) return base;
+    return current.kind === 'revive' ? current.amount : Math.min(f.maxHp, Math.max(0, base + (mends(current) ? current.amount : -current.amount)));
   };
   const livingCrew = battle.crew.filter((f) => f.hp > 0);
   const livingFoes = battle.foes.filter((f) => f.hp > 0);
   const chosenTarget = livingFoes.find((f) => f.id === target)?.id ?? livingFoes[0]?.id;
   const colorOf = (id: string) => CREW[id] ? crewColor(id) : colors.get(id) ?? '#5b3f8c';
   // During playback the stage shows health as of this blow, so a foe falls the moment it is beaten.
-  const onStage = (list: Fighter[]) => (playing ? list : list.filter((f) => f.hp > 0)).slice(0, 4).map((f) => ({ ...f, hp: shownHp(f) }));
-  const cutIn = current && (current.kind === 'special' || current.kind === 'steal') && progress < .47 ? current : null;
+  const onStage = (list: Fighter[]) => (playing ? list : list.filter((f) => f.hp > 0)).map((f) => ({ ...f, hp: shownHp(f) }));
+  const cutIn = current && (current.kind === 'special' || current.kind === 'steal' || current.kind === 'heal') && progress < .47 ? current : null;
   const planned = battle.planned;
   const busy = !!playing;
 
@@ -107,14 +110,14 @@ export default function BattleScreen({ battle, locationId, motion, dispatch }: P
     <div className={`vg-stage-wrap ${landed && motion ? `is-impact ${current?.kind === 'crit' || current?.kind === 'heavy' ? 'is-heavy' : ''}` : ''}`}>
       <div className="vg-stage" aria-hidden="true">
         <ActionStage crew={onStage(battle.crew)} foes={onStage(battle.foes)} blow={motion ? current : undefined} progress={progress} locationId={locationId} colors={colorOf} />
-        {current && landed && current.amount > 0 ? <span key={`${playing?.index}-pop`} className={`vg-pop is-${current.side} ${current.kind === 'crit' ? 'is-crit' : ''}`}>{current.kind === 'crit' ? 'CRIT ' : ''}−{current.amount}</span> : null}
-        {cutIn ? <div className="vg-cutin" key={`${playing?.index}-cut`}><Mini id={cutIn.actorId} color={crewColor(cutIn.actorId)} size={72} /><span><small>SPECIAL</small><strong>{CREW[cutIn.actorId]?.special.name}</strong></span></div> : null}
+        {current && landed && current.amount > 0 ? <span key={`${playing?.index}-pop`} className={`vg-pop is-${mends(current) ? 'mend' : current.side} ${current.kind === 'crit' ? 'is-crit' : ''}`}>{current.kind === 'crit' ? 'CRIT ' : ''}{mends(current) ? '+' : '−'}{current.amount}</span> : null}
+        {cutIn ? <div className="vg-cutin" key={`${playing?.index}-cut`}><Mini id={cutIn.actorId} color={colorOf(cutIn.actorId)} size={72} /><span><small>SPECIAL</small><strong>{specialFor(cutIn.actorId, battle.arcId).name}</strong></span></div> : null}
       </div>
       <p className="vg-caption" aria-hidden="true">{current?.label ?? (battle.result ? '' : 'Choose your moves')}</p>
     </div>
 
     <div className="vg-sides">
-      <ul className="vg-team" aria-label="Your crew">{battle.crew.map((f) => <FighterCard key={f.id} f={f} hp={shownHp(f)} color={crewColor(f.id)} />)}</ul>
+      <ul className="vg-team" aria-label="Your crew">{battle.crew.map((f) => <FighterCard key={f.id} f={f} hp={shownHp(f)} color={colorOf(f.id)} />)}</ul>
       <ul className="vg-team is-foes" aria-label="Foes">{battle.foes.map((f) => {
         const intent = battle.intents.find((i) => i.foeId === f.id);
         return <FighterCard key={f.id} f={f} hp={shownHp(f)} color={colorOf(f.id)} intent={battle.result || busy ? undefined : intent} intentTarget={intent ? battle.crew.find((c) => c.id === intent.targetId)?.name : undefined} selected={chosenTarget === f.id} onSelect={f.hp > 0 && !battle.result ? () => setTarget(f.id) : undefined} />;
@@ -127,12 +130,12 @@ export default function BattleScreen({ battle, locationId, motion, dispatch }: P
       <p>{battle.result === 'win' ? story?.outcome : 'Patch up, resupply if you can, and come back to this fight. Guarding before a heavy blow helps.'}</p>
       <button className="button primary" type="button" onClick={() => dispatch({ type: 'continue' })} autoFocus>Continue</button>
     </div> : <div className="vg-controls" aria-label="Plan your moves">
-      <p className="vg-plan-count">{planned.length}/{Math.min(MAX_ACTIONS, livingCrew.length)} moves planned · target: <strong>{livingFoes.find((f) => f.id === chosenTarget)?.name}</strong> <small>(tap a foe to change)</small></p>
+      <p className="vg-plan-count">{planned.length}/{Math.min(maxActions(battle), livingCrew.length)} moves planned · target: <strong>{livingFoes.find((f) => f.id === chosenTarget)?.name}</strong> <small>(tap a foe to change)</small></p>
       <ul className="vg-moves">{livingCrew.map((f) => {
-        const spec = CREW[f.id]; const mine = planned.find((p) => p.actorId === f.id);
-        return <li key={f.id}><span className="vg-move-name"><Mini id={f.id} color={crewColor(f.id)} size={32} />{spec.name}</span>
+        const special = specialFor(f.id, battle.arcId); const mine = planned.find((p) => p.actorId === f.id);
+        return <li key={f.id}><span className="vg-move-name"><Mini id={f.id} color={colorOf(f.id)} size={32} />{f.name}{f.guest ? <small className="vg-guest">ally</small> : null}</span>
           <button type="button" aria-pressed={mine?.kind === 'attack'} disabled={busy} onClick={() => plan(f.id, 'attack')}><Swords size={16} /> Attack</button>
-          <button type="button" aria-pressed={mine?.kind === 'special'} disabled={busy || !canAct(battle, { actorId: f.id, kind: 'special' })} onClick={() => plan(f.id, 'special')} title={spec.special.description}><Sparkles size={16} /> {spec.special.name} <small>{spec.special.cost}⚡</small></button>
+          <button type="button" aria-pressed={mine?.kind === 'special'} disabled={busy || !canAct(battle, { actorId: f.id, kind: 'special' })} onClick={() => plan(f.id, 'special')} title={special.description}><Sparkles size={16} /> {special.name} <small>{special.cost}⚡</small></button>
           <button type="button" aria-pressed={mine?.kind === 'guard'} disabled={busy} onClick={() => plan(f.id, 'guard')}><Shield size={16} /> Guard</button>
         </li>;
       })}</ul>
@@ -142,7 +145,7 @@ export default function BattleScreen({ battle, locationId, motion, dispatch }: P
       </div>
     </div>}
 
-    <ol className="vg-log" aria-live="polite" aria-label="Battle log">{(battle.blows ?? []).map((b, i) => <li key={`${battle.round}-${i}`} className={`is-${b.side}`}>{b.label}{b.amount ? ` (−${b.amount})` : ''}</li>)}</ol>
+    <ol className="vg-log" aria-live="polite" aria-label="Battle log">{(battle.blows ?? []).map((b, i) => <li key={`${battle.round}-${i}`} className={`is-${b.side}`}>{b.label}{b.amount && !mends(b) ? ` (−${b.amount})` : ''}</li>)}</ol>
   </section>;
 }
 
